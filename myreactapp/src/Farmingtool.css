@@ -1,40 +1,126 @@
-/* Add this to your CSS file */
+/* Farmingtool.css */
+
+.farming-tools-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
 .tool-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px; /* Space between cards */
-  justify-content: center; /* Center the cards horizontally */
-  padding: 20px; /* Add padding around the grid */
+  gap: 25px; /* Increased space between cards */
+  justify-content: center;
+  padding: 20px;
 }
 
 .tool-card {
-  border: 1px solid #ddd; /* Lighter border color */
-  border-radius: 8px; /* Rounded corners */
-  padding: 15px; /* Increased padding for better spacing */
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s; /* Smooth transition for hover effects */
-  background-color: white; /* White background for cards */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  width: 200px; /* Fixed width for consistency */
+  transition: transform 0.3s, box-shadow 0.3s;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 250px; /* Slightly wider cards */
+  height: 280px; /* Fixed height for consistency */
+  position: relative; /* Important for absolute positioning of hover content */
+  overflow: hidden; /* Keep the hover content hidden initially */
 }
 
 .tool-card:hover {
-  transform: translateY(-5px); /* Lift the card slightly on hover */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
 }
 
 .tool-image {
-  width: 100%; /* Full width of the card */
-  height: auto; /* Maintain aspect ratio */
-  border-radius: 4px; /* Slightly rounded corners for images */
+  width: 100%;
+  height: 160px; /* Fixed height for images */
+  object-fit: cover; /* Maintain aspect ratio while filling the container */
+  border-radius: 6px;
+  transition: opacity 0.3s;
 }
 
-.tool-details {
-  margin-top: 20px; /* Space above details */
-  border: 1px solid #ccc; /* Border for details */
-  border-radius: 8px; /* Rounded corners */
-  padding: 10px; /* Padding inside details */
-  background-color: #f9f9f9; /* Light background for details */
+.tool-name {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #333;
+  transition: opacity 0.3s;
+}
+
+/* Hover details styling */
+.tool-hover-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none; /* Prevents flickering on hover */
+}
+
+.tool-card:hover .tool-image,
+.tool-card:hover .tool-name {
+  opacity: 0.1; /* Fade original content when hovering */
+}
+
+.tool-card:hover .tool-hover-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tool-hover-info h3 {
+  margin-bottom: 10px;
+  color: #2a6f3b; /* Green color for farming theme */
+  font-size: 20px;
+}
+
+.tool-hover-info p {
+  margin-bottom: 8px;
+  font-size: 14px;
+  text-align: left;
+  line-height: 1.4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tool-grid {
+    gap: 20px;
+  }
+
+  .tool-card {
+    width: calc(50% - 20px);
+    height: 260px;
+  }
+
+  .tool-hover-info {
+    padding: 10px;
+  }
+
+  .tool-hover-info h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  .tool-hover-info p {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tool-card {
+    width: 100%;
+    max-width: 300px;
+    height: 280px;
+  }
 }
