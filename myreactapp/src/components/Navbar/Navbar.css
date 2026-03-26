@@ -1,0 +1,192 @@
+/**
+ * Navbar.css
+ * Fixed top navigation bar with brand logo, desktop link row, and
+ * a hamburger menu for narrow viewports and high zoom levels.
+ * Breakpoint at 56em triggers the mobile drawer layout.
+ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 72px;
+  background: rgba(13, 31, 21, 0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.navbar-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 1.5rem);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  min-width: 0;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.brand-icon {
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+/* ── NAV LINKS (desktop) ── */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;          /* allow wrapping at high zoom instead of overflowing */
+  min-width: 0;
+  overflow: hidden;         /* keep within navbar even if wrap can't save it */
+  max-height: 72px;         /* clamp to navbar height on desktop */
+}
+
+.nav-link {
+  display: inline-block;
+  padding: clamp(0.35rem, 0.8vw, 0.5rem) clamp(0.6rem, 1.2vw, 1rem);
+  font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.06);
+}
+
+.nav-link.active {
+  color: var(--primary-light);
+  background: rgba(26,122,74,0.15);
+}
+
+/* ── HAMBURGER ── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.hamburger:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* ── MOBILE MENU ── */
+/* Breakpoint raised to 56em (896px logical) so hamburger kicks in at 125% zoom on 768px screens */
+@media (max-width: 56em) {
+  .hamburger { display: flex; }
+
+  .navbar-links {
+    position: fixed;
+    top: 72px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    background: rgba(13, 31, 21, 0.98);
+    border-bottom: 1px solid var(--border);
+    padding: 16px clamp(1rem, 3vw, 1.5rem);
+    gap: 4px;
+    display: none;
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+    max-height: unset;    /* override desktop clamp */
+  }
+
+  .navbar-links.open { display: flex; }
+
+  .nav-link {
+    padding: clamp(0.65rem, 1.5vw, 0.875rem) clamp(0.75rem, 2vw, 1rem);
+    font-size: 0.95rem;
+  }
+}
+
+/* Also collapse at larger screens when zoomed (effectively smaller viewport) */
+@media (max-width: 36em) {
+  .brand-name { display: none; }
+}
+
+/* ── User area & Logout ────────────────────────────────────────────── */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.navbar-username {
+  font-size: clamp(0.72rem, 1vw, 0.8rem);
+  color: var(--text-muted);
+  white-space: nowrap;
+  display: none;
+}
+
+.btn-logout {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #f87171;
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-size: clamp(0.72rem, 1vw, 0.82rem);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-logout:hover {
+  background: rgba(239,68,68,0.2);
+  border-color: #f87171;
+}
+
+@media (min-width: 560px) {
+  .navbar-username { display: block; }
+}

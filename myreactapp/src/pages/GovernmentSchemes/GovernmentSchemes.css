@@ -1,0 +1,171 @@
+/**
+ * GovernmentSchemes.css
+ * Status filter tabs, scheme list rows with status badges and meta chips.
+ */
+
+/* ── Status filter tabs ──────────────────────────────────────────────── */
+.schemes-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.scheme-status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-size: clamp(0.75rem, 1.1vw, 0.82rem);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.scheme-status-tab:hover { border-color: var(--primary); color: var(--text-secondary); }
+
+.scheme-status-tab-ongoing.active  { background: rgba(34,197,94,0.15); border-color:#22c55e; color:#22c55e; }
+.scheme-status-tab-upcoming.active { background: rgba(99,102,241,0.15); border-color:#818cf8; color:#818cf8; }
+.scheme-status-tab-completed.active{ background: rgba(148,163,184,0.1); border-color:#94a3b8; color:#94a3b8; }
+.scheme-status-tab-all.active      { background: var(--primary); border-color:var(--primary); color:#fff; }
+
+.scheme-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 22px;
+}
+
+/* ── Search bar ───────────────────────────────────────────────────────── */
+.schemes-search-bar {
+  margin-bottom: clamp(0.875rem, 2vw, 1.25rem);
+  max-width: min(520px, 100%);
+}
+
+.schemes-count {
+  font-size: clamp(0.78rem, 1.2vw, 0.85rem);
+  color: var(--text-muted);
+  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.schemes-count strong { color: var(--primary-light); }
+
+/* ── Scheme list ─────────────────────────────────────────────────────── */
+.schemes-list { list-style: none; display: flex; flex-direction: column; gap: 0.625rem; }
+
+.scheme-item {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(0.875rem, 2vw, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
+  transition: all 0.25s ease;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.scheme-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+
+.scheme-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 70px;
+}
+
+.scheme-number {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Status badges */
+.scheme-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-ongoing   { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+.badge-upcoming  { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.28); }
+.badge-completed { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+
+/* Scheme content */
+.scheme-content { flex: 1 1 240px; min-width: 0; }
+
+.scheme-title {
+  font-size: clamp(0.875rem, 1.4vw, 1rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.scheme-title:hover { color: var(--primary-light); }
+
+.scheme-desc {
+  font-size: clamp(0.75rem, 1.1vw, 0.82rem);
+  color: var(--text-muted);
+  word-break: break-word;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* Meta chips */
+.scheme-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scheme-ministry,
+.scheme-budget,
+.scheme-deadline {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* CTA */
+.scheme-cta {
+  font-size: clamp(0.75rem, 1.1vw, 0.82rem);
+  padding: 8px clamp(0.75rem, 1.5vw, 1rem);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: min-content;
+  align-self: flex-start;
+}
+
+.no-results {
+  padding: clamp(2rem, 6vw, 3rem) 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  word-break: break-word;
+}

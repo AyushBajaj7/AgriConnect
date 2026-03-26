@@ -1,0 +1,184 @@
+/**
+ * File: priceService.js
+ * Description: Fetches live mandi prices from the Agmarknet API (data.gov.in).
+ *              Falls back to a comprehensive 55-item static dataset on API failure.
+ *              Adds ±3% random variance on each call to simulate live market fluctuation.
+ * Used in: pages/CropPrices/CropPrices.js
+ */
+
+const AGMARKNET_KEY = '579b464db66ec23bdd000001cdd3946e44ce4aeb08d72d1860f33d1';
+const AGMARKNET_URL = 'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070';
+
+/** Maps commodity keywords to display categories. */
+const CATEGORY_KEYWORDS = {
+  crops:       ['wheat','rice','paddy','maize','cotton','sugarcane','mustard','jowar','bajra','toor','moong','arhar','chilli','turmeric','ginger','tea','coffee','pepper','soybean','jute','tobacco'],
+  vegetables:  ['onion','potato','tomato','cauliflower','cabbage','brinjal','pea','capsicum','garlic','carrot','pumpkin','cucumber'],
+  fruits:      ['mango','banana','apple','grape','orange','litchi','coconut','pomegranate','papaya'],
+  seeds:       ['groundnut','sunflower','castor','guar','sesame','cotton seed','paddy seed','maize seed'],
+  fertilizers: ['urea','dap','mop','ssp','npk','compost'],
+};
+
+function categorize(commodity = '') {
+  const lower = commodity.toLowerCase();
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(k => lower.includes(k))) return cat;
+  }
+  return 'crops';
+}
+
+/** Approximate road distances (km) from Delhi to major mandi cities. */
+const MANDI_DISTANCES = {
+  delhi:12, azadpur:12, gurugram:30, faridabad:35, noida:25,
+  karnal:130, ambala:200, hisar:170, panipat:90, rohtak:70,
+  ludhiana:300, amritsar:450, jalandhar:370, patiala:260,
+  jaipur:280, jodhpur:600, bikaner:450, kota:475,
+  agra:200, lucknow:550, varanasi:820, kanpur:480, allahabad:640,
+  indore:780, bhopal:700, gwalior:320, ujjain:750,
+  mumbai:1400, pune:1510, nasik:1600, nagpur:1100, latur:1600, aurangabad:1270, amravati:1200,
+  ahmedabad:950, rajkot:1100, surat:1200, baroda:1020,
+  hyderabad:1560, guntur:1800, kurnool:1700, warangal:1500,
+  bangalore:2100, kolar:2150, davangere:2300, mysore:2280,
+  chennai:2200, coimbatore:2300, madurai:2450, koyambedu:2200,
+  kolkata:1500, siliguri:1700, howrah:1490,
+  patna:1000, muzaffarpur:1100, gaya:1050,
+  bhubaneswar:1700, cuttack:1720,
+  guwahati:1950, silchar:2200,
+  shimla:350, kullu:450, dharamshala:490,
+  dehradun:300, haridwar:220, rishikesh:240,
+  raipur:1100, bilaspur:1200,
+  ranchi:1300, jamshedpur:1500,
+  kochi:2500, calicut:2450, thiruvananthapuram:2700,
+  chandigarh:250,
+};
+
+function getDistance(market = '') {
+  const lower = market.toLowerCase();
+  for (const [city, dist] of Object.entries(MANDI_DISTANCES)) {
+    if (lower.includes(city)) return dist;
+  }
+  return Math.floor(Math.random() * 900 + 100);
+}
+
+/** Add ±3% variance to simulate live price fluctuation. */
+function addVariance(price) {
+  const factor = 1 + (Math.random() * 0.06 - 0.03);
+  return Math.round(price * factor);
+}
+
+/** Price trend compared to previous call (stored in memory). */
+const priceHistory = {};
+function getTrend(id, currentPrice) {
+  const prev = priceHistory[id];
+  priceHistory[id] = currentPrice;
+  if (prev === undefined) return 'stable';
+  if (currentPrice > prev) return 'up';
+  if (currentPrice < prev) return 'down';
+  return 'stable';
+}
+
+function normalizeApiRecord(record, index) {
+  const modal = parseInt(record.modal_price, 10) || 0;
+  const id = `api_${index}`;
+  const withVariance = addVariance(modal);
+  return {
+    id,
+    market:     record.market,
+    state:      record.state,
+    commodity:  record.commodity,
+    variety:    record.variety || 'Local',
+    category:   categorize(record.commodity),
+    modalPrice: withVariance,
+    minPrice:   parseInt(record.min_price, 10) || 0,
+    maxPrice:   parseInt(record.max_price, 10) || 0,
+    distance:   getDistance(record.market),
+    trend:      getTrend(id, withVariance),
+    source:     'live',
+  };
+}
+
+/** Static fallback dataset — 55 items across major mandis. */
+const STATIC_PRICES = [
+  { id:'s1',  market:'Delhi Azadpur',      state:'Delhi',           commodity:'Onion',        variety:'Red',             category:'vegetables',  modalPrice:1500,  minPrice:1200, maxPrice:1800, distance:12   },
+  { id:'s2',  market:'Delhi Azadpur',      state:'Delhi',           commodity:'Potato',       variety:'Kufri Bahar',     category:'vegetables',  modalPrice:1100,  minPrice:900,  maxPrice:1300, distance:12   },
+  { id:'s3',  market:'Delhi Azadpur',      state:'Delhi',           commodity:'Tomato',       variety:'Hybrid',          category:'vegetables',  modalPrice:2200,  minPrice:1800, maxPrice:2800, distance:12   },
+  { id:'s4',  market:'Delhi Azadpur',      state:'Delhi',           commodity:'Cauliflower',  variety:'Pusa Snowball',   category:'vegetables',  modalPrice:1200,  minPrice:1000, maxPrice:1400, distance:12   },
+  { id:'s5',  market:'Delhi Azadpur',      state:'Delhi',           commodity:'Cabbage',      variety:'Golden Acre',     category:'vegetables',  modalPrice:800,   minPrice:600,  maxPrice:1000, distance:12   },
+  { id:'s6',  market:'Karnal Mandi',       state:'Haryana',         commodity:'Wheat',        variety:'Sharbati',        category:'crops',       modalPrice:2800,  minPrice:2600, maxPrice:3000, distance:130  },
+  { id:'s7',  market:'Ambala Mandi',       state:'Haryana',         commodity:'Rice',         variety:'Basmati 1121',    category:'crops',       modalPrice:4200,  minPrice:3800, maxPrice:4500, distance:200  },
+  { id:'s8',  market:'Gurugram Mandi',     state:'Haryana',         commodity:'Wheat',        variety:'Lok-1',           category:'crops',       modalPrice:2300,  minPrice:2100, maxPrice:2500, distance:28   },
+  { id:'s9',  market:'Ludhiana Mandi',     state:'Punjab',          commodity:'Wheat',        variety:'PBW 343',         category:'crops',       modalPrice:2350,  minPrice:2150, maxPrice:2550, distance:300  },
+  { id:'s10', market:'Amritsar Mandi',     state:'Punjab',          commodity:'Rice',         variety:'PR 106',          category:'crops',       modalPrice:1950,  minPrice:1800, maxPrice:2100, distance:450  },
+  { id:'s11', market:'Indore Mandi',       state:'Madhya Pradesh',  commodity:'Soybean',      variety:'Yellow',          category:'seeds',       modalPrice:4400,  minPrice:4200, maxPrice:4700, distance:780  },
+  { id:'s12', market:'Bhopal Mandi',       state:'Madhya Pradesh',  commodity:'Cotton',       variety:'Long Staple',     category:'crops',       modalPrice:7200,  minPrice:6800, maxPrice:7600, distance:700  },
+  { id:'s13', market:'Latur APMC',         state:'Maharashtra',     commodity:'Toor Dal',     variety:'Desi',            category:'crops',       modalPrice:10000, minPrice:9500, maxPrice:10500,distance:1600 },
+  { id:'s14', market:'Nasik APMC',         state:'Maharashtra',     commodity:'Onion',        variety:'Nashik Red',      category:'vegetables',  modalPrice:1500,  minPrice:1200, maxPrice:1800, distance:1600 },
+  { id:'s15', market:'Nagpur APMC',        state:'Maharashtra',     commodity:'Orange',       variety:'Nagpur Mandarin', category:'fruits',      modalPrice:3500,  minPrice:3000, maxPrice:4000, distance:1100 },
+  { id:'s16', market:'Pune APMC',          state:'Maharashtra',     commodity:'Grape',        variety:'Thomson Seedless',category:'fruits',      modalPrice:4500,  minPrice:4000, maxPrice:5000, distance:1510 },
+  { id:'s17', market:'Ratnagiri Mandi',    state:'Maharashtra',     commodity:'Mango',        variety:'Alphonso',        category:'fruits',      modalPrice:10000, minPrice:8000, maxPrice:12000,distance:1800 },
+  { id:'s18', market:'Jaipur Mandi',       state:'Rajasthan',       commodity:'Bajra',        variety:'HHB 67',          category:'crops',       modalPrice:2100,  minPrice:1900, maxPrice:2300, distance:280  },
+  { id:'s19', market:'Jodhpur Mandi',      state:'Rajasthan',       commodity:'Guar Seed',    variety:'Local',           category:'seeds',       modalPrice:5600,  minPrice:5200, maxPrice:6000, distance:600  },
+  { id:'s20', market:'Ahmedabad APMC',     state:'Gujarat',         commodity:'Groundnut',    variety:'Bold',            category:'seeds',       modalPrice:6200,  minPrice:5800, maxPrice:6600, distance:950  },
+  { id:'s21', market:'Rajkot Mandi',       state:'Gujarat',         commodity:'Castor Seed',  variety:'GAU-1',           category:'seeds',       modalPrice:5700,  minPrice:5400, maxPrice:6000, distance:1100 },
+  { id:'s22', market:'Kolar Mandi',        state:'Karnataka',       commodity:'Tomato',       variety:'Hybrid',          category:'vegetables',  modalPrice:1000,  minPrice:800,  maxPrice:1200, distance:2150 },
+  { id:'s23', market:'Davangere Mandi',    state:'Karnataka',       commodity:'Maize',        variety:'Hybrid',          category:'crops',       modalPrice:1900,  minPrice:1700, maxPrice:2100, distance:2300 },
+  { id:'s24', market:'Koyambedu Market',   state:'Tamil Nadu',      commodity:'Banana',       variety:'Robusta',         category:'fruits',      modalPrice:2800,  minPrice:2400, maxPrice:3200, distance:2200 },
+  { id:'s25', market:'Dindigul Mandi',     state:'Tamil Nadu',      commodity:'Coconut',      variety:'Tall',            category:'fruits',      modalPrice:1600,  minPrice:1400, maxPrice:1800, distance:2450 },
+  { id:'s26', market:'Guntur APMC',        state:'Andhra Pradesh',  commodity:'Red Chilli',   variety:'Byadagi',         category:'crops',       modalPrice:18000, minPrice:16000,maxPrice:20000,distance:1800 },
+  { id:'s27', market:'Kurnool Mandi',      state:'Andhra Pradesh',  commodity:'Sunflower',    variety:'DRSH-1',          category:'seeds',       modalPrice:5400,  minPrice:5100, maxPrice:5700, distance:1700 },
+  { id:'s28', market:'Hyderabad APMC',     state:'Telangana',       commodity:'Turmeric',     variety:'Erode',           category:'crops',       modalPrice:15000, minPrice:13000,maxPrice:17000,distance:1560 },
+  { id:'s29', market:'Siliguri Mandi',     state:'West Bengal',     commodity:'Ginger',       variety:'Dry',             category:'crops',       modalPrice:8500,  minPrice:7500, maxPrice:9500, distance:1700 },
+  { id:'s30', market:'Shimla Mandi',       state:'Himachal Pradesh',commodity:'Apple',        variety:'Royal Delicious', category:'fruits',      modalPrice:6000,  minPrice:5000, maxPrice:7000, distance:350  },
+  { id:'s31', market:'Agra Mandi',         state:'Uttar Pradesh',   commodity:'Potato',       variety:'Kufri Bahar',     category:'vegetables',  modalPrice:750,   minPrice:600,  maxPrice:900,  distance:200  },
+  { id:'s32', market:'Lucknow Mandi',      state:'Uttar Pradesh',   commodity:'Sugarcane',    variety:'Co-0238',         category:'crops',       modalPrice:350,   minPrice:320,  maxPrice:380,  distance:550  },
+  { id:'s33', market:'Varanasi Mandi',     state:'Uttar Pradesh',   commodity:'Mustard',      variety:'Yellow',          category:'seeds',       modalPrice:5200,  minPrice:4900, maxPrice:5500, distance:820  },
+  { id:'s34', market:'Muzaffarpur Mandi',  state:'Bihar',           commodity:'Litchi',       variety:'Shahi',           category:'fruits',      modalPrice:8000,  minPrice:7000, maxPrice:9000, distance:1100 },
+  { id:'s35', market:'Patna Mandi',        state:'Bihar',           commodity:'Rice',         variety:'Sona Masuri',     category:'crops',       modalPrice:2800,  minPrice:2600, maxPrice:3000, distance:1000 },
+  { id:'s36', market:'Guwahati Mandi',     state:'Assam',           commodity:'Tea',          variety:'CTC',             category:'crops',       modalPrice:11000, minPrice:9500, maxPrice:12500,distance:1950 },
+  { id:'s37', market:'Bhubaneswar Mandi',  state:'Odisha',          commodity:'Rice',         variety:'Swarna',          category:'crops',       modalPrice:2200,  minPrice:2000, maxPrice:2400, distance:1700 },
+  { id:'s38', market:'Kochi Mandi',        state:'Kerala',          commodity:'Coconut',      variety:'West Coast Tall', category:'fruits',      modalPrice:1800,  minPrice:1600, maxPrice:2000, distance:2500 },
+  { id:'s39', market:'Calicut Mandi',      state:'Kerala',          commodity:'Black Pepper', variety:'Panniyur-1',      category:'crops',       modalPrice:55000, minPrice:50000,maxPrice:60000,distance:2450 },
+  { id:'s40', market:'Jhansi Mandi',       state:'Uttar Pradesh',   commodity:'Moong Dal',    variety:'PDM 139',         category:'crops',       modalPrice:7500,  minPrice:7000, maxPrice:8000, distance:490  },
+  { id:'s41', market:'Kanpur Mandi',       state:'Uttar Pradesh',   commodity:'Arhar Dal',    variety:'UPAS 120',        category:'crops',       modalPrice:9000,  minPrice:8500, maxPrice:9500, distance:480  },
+  { id:'s42', market:'Belgaum Mandi',      state:'Karnataka',       commodity:'Jowar',        variety:'SPH 1827',        category:'crops',       modalPrice:2600,  minPrice:2400, maxPrice:2800, distance:1700 },
+  { id:'s43', market:'Agro Bazaar Delhi',  state:'Delhi',           commodity:'Urea',         variety:'Neem Coated',     category:'fertilizers', modalPrice:268,   minPrice:268,  maxPrice:268,  distance:15   },
+  { id:'s44', market:'Agro Bazaar Delhi',  state:'Delhi',           commodity:'DAP',          variety:'18:46:00',        category:'fertilizers', modalPrice:1350,  minPrice:1350, maxPrice:1350, distance:15   },
+  { id:'s45', market:'Pune APMC',          state:'Maharashtra',     commodity:'MOP',          variety:'Standard',        category:'fertilizers', modalPrice:950,   minPrice:900,  maxPrice:1000, distance:1510 },
+  { id:'s46', market:'Surat Mandi',        state:'Gujarat',         commodity:'Banana',       variety:'Grand Naine',     category:'fruits',      modalPrice:2200,  minPrice:1900, maxPrice:2500, distance:1200 },
+  { id:'s47', market:'Ludhiana Mandi',     state:'Punjab',          commodity:'Potato',       variety:'Kufri Jyoti',     category:'vegetables',  modalPrice:1050,  minPrice:900,  maxPrice:1200, distance:300  },
+  { id:'s48', market:'Chandigarh Mandi',   state:'Punjab',          commodity:'Cauliflower',  variety:'Pusa Hybrid',     category:'vegetables',  modalPrice:1300,  minPrice:1100, maxPrice:1500, distance:250  },
+  { id:'s49', market:'Amravati APMC',      state:'Maharashtra',     commodity:'Cotton',       variety:'BT Cotton',       category:'crops',       modalPrice:7400,  minPrice:7000, maxPrice:7800, distance:1200 },
+  { id:'s50', market:'Ranchi Mandi',       state:'Jharkhand',       commodity:'Maize',        variety:'Local',           category:'crops',       modalPrice:1700,  minPrice:1500, maxPrice:1900, distance:1300 },
+  { id:'s51', market:'Raipur Mandi',       state:'Chhattisgarh',    commodity:'Rice',         variety:'Mahamaya',        category:'crops',       modalPrice:2100,  minPrice:1900, maxPrice:2300, distance:1100 },
+  { id:'s52', market:'Dehradun Mandi',     state:'Uttarakhand',     commodity:'Wheat',        variety:'HP-1633',         category:'crops',       modalPrice:2200,  minPrice:2000, maxPrice:2400, distance:300  },
+  { id:'s53', market:'Haridwar Mandi',     state:'Uttarakhand',     commodity:'Rice',         variety:'Dehraduni Basmati',category:'crops',      modalPrice:4800,  minPrice:4400, maxPrice:5200, distance:220  },
+  { id:'s54', market:'Saharanpur Mandi',   state:'Uttar Pradesh',   commodity:'Mango',        variety:'Dussehri',        category:'fruits',      modalPrice:3000,  minPrice:2500, maxPrice:3500, distance:170  },
+  { id:'s55', market:'Coimbatore Mandi',   state:'Tamil Nadu',      commodity:'Cotton',       variety:'MCU-5',           category:'crops',       modalPrice:6800,  minPrice:6400, maxPrice:7200, distance:2300 },
+];
+
+function applyStaticVariance(prices) {
+  return prices.map(p => {
+    const modal = addVariance(p.modalPrice);
+    return { ...p, modalPrice: modal, trend: getTrend(p.id, modal) };
+  });
+}
+
+/**
+ * Fetches live mandi prices. Tries Agmarknet API first; falls back to static data.
+ * @returns {Promise<Array>}
+ */
+export async function fetchMandiPrices() {
+  try {
+    const url = `${AGMARKNET_URL}?api-key=${AGMARKNET_KEY}&format=json&limit=80&filters[arrival_date]=01%2F01%2F2024`;
+    const res  = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('API response not OK');
+    const data = await res.json();
+    if (!data.records?.length) throw new Error('No records');
+    return data.records.map(normalizeApiRecord);
+  } catch {
+    // API unavailable — use static dataset with variance
+    return applyStaticVariance(STATIC_PRICES);
+  }
+}
+
+export { STATIC_PRICES };
+export const PRICE_CATEGORIES = ['all', 'crops', 'vegetables', 'fruits', 'seeds', 'fertilizers'];

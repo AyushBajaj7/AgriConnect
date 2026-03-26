@@ -1,0 +1,224 @@
+/**
+ * CropPrices.css
+ * Live mandi price table — header info bar, category filter tabs, search/sort
+ * controls, sticky-header table with alternating rows, category badges, trend
+ * indicators, and responsive collapse for mobile.
+ */
+
+/* ── Page header ─────────────────────────────────────────────────────── */
+.prices-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.prices-refresh-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: clamp(0.72rem, 1.1vw, 0.82rem);
+  color: var(--text-muted);
+}
+
+.prices-live-badge {
+  background: rgba(26,122,74,0.15);
+  color: var(--primary-light);
+  border: 1px solid rgba(26,122,74,0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.prices-refresh-btn {
+  font-size: 0.8rem;
+  padding: 6px 14px;
+}
+
+/* ── Category tabs ───────────────────────────────────────────────────── */
+.prices-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.prices-tab {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: clamp(0.75rem, 1.1vw, 0.82rem);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.prices-tab:hover { border-color: var(--primary); color: var(--primary-light); }
+.prices-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Controls (search + sort + count) ───────────────────────────────── */
+.prices-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1.5vw, 0.875rem);
+  margin-bottom: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.prices-search {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: clamp(0.82rem, 1.2vw, 0.9rem);
+}
+
+.prices-search:focus { outline: none; border-color: var(--primary); }
+
+.prices-sort {
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: clamp(0.78rem, 1.1vw, 0.85rem);
+  cursor: pointer;
+}
+
+.prices-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────── */
+.prices-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.prices-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.prices-table thead {
+  background: rgba(255,255,255,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.prices-table th {
+  padding: clamp(0.625rem, 1.5vw, 0.875rem) clamp(0.875rem, 2vw, 1.25rem);
+  text-align: left;
+  font-size: clamp(0.68rem, 0.9vw, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.prices-row {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+
+.prices-row:last-child { border-bottom: none; }
+.prices-row:hover { background: rgba(26,122,74,0.06); }
+
+.prices-table td {
+  padding: clamp(0.75rem, 1.5vw, 1rem) clamp(0.875rem, 2vw, 1.25rem);
+  vertical-align: middle;
+}
+
+/* Market cell */
+.prices-market { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.prices-pin { font-size: 1rem; flex-shrink: 0; }
+.prices-market-name { font-size: clamp(0.82rem, 1.2vw, 0.9rem); font-weight: 500; color: var(--text-primary); }
+.prices-state { font-size: clamp(0.7rem, 1vw, 0.77rem); color: var(--text-muted); margin-top: 2px; }
+
+/* Commodity cell */
+.prices-commodity { font-size: clamp(0.82rem, 1.2vw, 0.9rem); color: var(--text-primary); font-weight: 500; }
+.prices-variety    { color: var(--text-muted); font-weight: 400; }
+
+/* Category badges */
+.prices-cat-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+.prices-cat-crops       { background: rgba(26,122,74,0.15);  color: #2da05f; }
+.prices-cat-vegetables  { background: rgba(245,166,35,0.15); color: #d4890a; }
+.prices-cat-fruits      { background: rgba(99,102,241,0.15); color: #818cf8; }
+.prices-cat-seeds       { background: rgba(236,72,153,0.15); color: #f472b6; }
+.prices-cat-fertilizers { background: rgba(148,163,184,0.1); color: #94a3b8; }
+
+/* Distance */
+.prices-distance {
+  font-size: clamp(0.78rem, 1.1vw, 0.85rem);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Price range */
+.prices-range { font-size: clamp(0.72rem, 1vw, 0.8rem); white-space: nowrap; }
+.range-min { color: var(--text-muted); }
+.range-sep { color: var(--text-muted); }
+.range-max { color: var(--text-muted); }
+
+/* Modal price + trend */
+.prices-modal { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.prices-modal-value { font-size: clamp(0.9rem, 1.4vw, 1.05rem); font-weight: 700; color: var(--primary-light); }
+.prices-trend { font-size: 0.85rem; font-weight: 700; }
+.trend-up     { color: #22c55e; }
+.trend-down   { color: #f87171; }
+.trend-stable { color: var(--text-muted); }
+
+/* Navigate button */
+.btn-navigate {
+  display: inline-block;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  color: var(--primary-light);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.btn-navigate:hover { background: var(--primary); color: #fff; }
+
+/* Empty state */
+.prices-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}

@@ -1,0 +1,94 @@
+/**
+ * Footer.css
+ * Site-wide footer layout — brand block on the left, navigation columns
+ * on the right, and a bottom copyright bar.
+ */
+
+.footer {
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  padding: clamp(2rem, 5vw, 3rem) clamp(1rem, 3vw, 1.5rem) 0;
+}
+
+.footer-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  flex-wrap: wrap;
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  min-width: 0;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.footer-icon { font-size: clamp(1.5rem, 3vw, 2rem); flex-shrink: 0; }
+
+.footer-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.footer-tagline {
+  font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+  color: var(--text-muted);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.footer-links {
+  display: flex;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 100px;
+}
+
+.footer-col h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.footer-col a {
+  font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-col a:hover { color: var(--primary-light); }
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding: clamp(1rem, 2vw, 1.25rem) 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-bottom p {
+  font-size: clamp(0.75rem, 1vw, 0.82rem);
+  color: var(--text-muted);
+}

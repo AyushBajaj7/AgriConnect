@@ -1,0 +1,110 @@
+/**
+ * Login.css
+ * Styles for the Login page — full-viewport centered card layout
+ * with a decorative radial glow, fluid sizing, and animated entry.
+ */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+  padding: clamp(1rem, 4vw, 2rem);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-glow {
+  position: absolute;
+  width: min(600px, 100vw);
+  height: min(600px, 100vw);
+  background: radial-gradient(circle, rgba(26,122,74,0.15) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.login-card {
+  width: 100%;
+  max-width: min(420px, calc(100vw - 2rem));
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.5rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.5rem);
+  animation: fadeInUp 0.5s ease both;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.login-icon {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.login-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+  color: var(--text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.form-group label {
+  font-size: clamp(0.78rem, 1.2vw, 0.85rem);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.login-error {
+  padding: clamp(0.6rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem);
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: var(--radius);
+  font-size: clamp(0.78rem, 1.2vw, 0.875rem);
+  color: #f87171;
+  word-break: break-word;
+}
+
+.login-btn {
+  width: 100%;
+  justify-content: center;
+  padding: clamp(0.75rem, 2vw, 0.875rem);
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  margin-top: 4px;
+}
+
+.login-hint {
+  margin-top: clamp(1rem, 2.5vw, 1.5rem);
+  text-align: center;
+  font-size: clamp(0.75rem, 1.2vw, 0.82rem);
+  color: var(--text-muted);
+}
+
+.login-hint strong { color: var(--text-secondary); }

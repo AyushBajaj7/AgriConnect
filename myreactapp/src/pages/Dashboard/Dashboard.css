@@ -1,0 +1,75 @@
+/**
+ * Dashboard.css
+ * Styles for the Dashboard page — hero welcome banner, stat summary
+ * cards, and the quick-access feature card grid.
+ */
+
+.dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 1.5rem);
+  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  background: linear-gradient(135deg, rgba(26,122,74,0.1), rgba(13,31,21,0.5));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-hero > div { min-width: 0; flex: 1 1 200px; }
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: clamp(0.75rem, 2vw, 1rem);
+  margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(1rem, 2.5vw, 1.5rem) clamp(0.75rem, 2vw, 1rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(0.25rem, 0.8vw, 0.5rem);
+  transition: all 0.25s ease;
+  min-width: 0;
+}
+
+.stat-card:hover {
+  border-color: var(--primary);
+  background: var(--bg-card-hover);
+}
+
+.stat-icon { font-size: clamp(1.3rem, 2.5vw, 1.6rem); }
+
+.stat-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  font-weight: 700;
+  color: var(--primary-light);
+}
+
+.stat-label {
+  font-size: clamp(0.68rem, 1vw, 0.82rem);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  word-break: break-word;
+}
+
+.section-heading {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
