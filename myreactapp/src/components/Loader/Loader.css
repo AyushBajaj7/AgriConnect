@@ -17,7 +17,7 @@
 .loader-spinner {
   width: clamp(36px, 8vw, 48px);
   height: clamp(36px, 8vw, 48px);
-  border: 3px solid rgba(26,122,74,0.2);
+  border: 3px solid rgba(26, 122, 74, 0.2);
   border-top-color: var(--primary-light);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

@@ -31,10 +31,13 @@
   min-width: 0;
 }
 
-.footer-icon { font-size: clamp(1.5rem, 3vw, 2rem); flex-shrink: 0; }
+.footer-icon {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  flex-shrink: 0;
+}
 
 .footer-name {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: clamp(1rem, 2vw, 1.2rem);
   font-weight: 700;
   color: var(--text-primary);
@@ -78,7 +81,9 @@
   transition: color 0.2s;
 }
 
-.footer-col a:hover { color: var(--primary-light); }
+.footer-col a:hover {
+  color: var(--primary-light);
+}
 
 .footer-bottom {
   border-top: 1px solid var(--border);

@@ -19,7 +19,11 @@
   position: absolute;
   width: min(600px, 100vw);
   height: min(600px, 100vw);
-  background: radial-gradient(circle, rgba(26,122,74,0.15) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(26, 122, 74, 0.15) 0%,
+    transparent 70%
+  );
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -51,7 +55,7 @@
 }
 
 .login-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: clamp(1.4rem, 4vw, 1.8rem);
   font-weight: 700;
   color: var(--text-primary);
@@ -84,8 +88,8 @@
 
 .login-error {
   padding: clamp(0.6rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem);
-  background: rgba(239,68,68,0.12);
-  border: 1px solid rgba(239,68,68,0.3);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius);
   font-size: clamp(0.78rem, 1.2vw, 0.875rem);
   color: #f87171;
@@ -107,4 +111,6 @@
   color: var(--text-muted);
 }
 
-.login-hint strong { color: var(--text-secondary); }
+.login-hint strong {
+  color: var(--text-secondary);
+}

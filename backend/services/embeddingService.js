@@ -4,15 +4,17 @@
  *              Provides getEmbedding() and cosineSimilarity(). Used by ragService.js.
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // gemini-embedding-001: confirmed available by ListModels API for this key
 // (embedding-001 and text-embedding-004 both return 404 on v1beta SDK)
-const embeddingModel = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
+const embeddingModel = genAI.getGenerativeModel({
+  model: "gemini-embedding-001",
+});
 
-const { withRetry } = require('./retryHelper');
+const { withRetry } = require("./retryHelper");
 
 /**
  * Converts text into a 768-dimension embedding vector.
@@ -32,9 +34,11 @@ async function getEmbedding(text) {
  * @returns {number}
  */
 function cosineSimilarity(a, b) {
-  let dot = 0, magA = 0, magB = 0;
+  let dot = 0,
+    magA = 0,
+    magB = 0;
   for (let i = 0; i < a.length; i++) {
-    dot  += a[i] * b[i];
+    dot += a[i] * b[i];
     magA += a[i] * a[i];
     magB += b[i] * b[i];
   }

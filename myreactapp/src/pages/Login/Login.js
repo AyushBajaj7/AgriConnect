@@ -12,22 +12,22 @@
  * Used in: App.js (route /login)
  */
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../../services/authService';
-import './Login.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../../services/authService";
+import "./Login.css";
 
 function Login() {
-  const [form, setForm]       = useState({ username: '', password: '' });
-  const [error, setError]     = useState('');
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate              = useNavigate();
+  const navigate = useNavigate();
 
   /** Sync form field changes and clear any existing error. */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    setError('');
+    setError("");
   };
 
   /** Submit the form — calls authService and navigates or displays error. */
@@ -38,7 +38,7 @@ function Login() {
     const result = login(form.username, form.password);
 
     if (result.success) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     } else {
       setError(result.message);
       setLoading(false);
@@ -86,19 +86,24 @@ function Login() {
             />
           </div>
 
-          {error && <div className="login-error" role="alert">{error}</div>}
+          {error && (
+            <div className="login-error" role="alert">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"
             className="btn-primary login-btn"
             disabled={loading}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
 
         <p className="login-hint">
-          Demo credentials: <strong>admin</strong> / <strong>password123</strong>
+          Demo credentials: <strong>admin</strong> /{" "}
+          <strong>password123</strong>
         </p>
       </div>
     </div>

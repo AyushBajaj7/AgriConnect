@@ -47,7 +47,7 @@
 }
 
 .brand-name {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: clamp(1rem, 2vw, 1.35rem);
   font-weight: 700;
   color: var(--text-primary);
@@ -63,10 +63,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  flex-wrap: wrap;          /* allow wrapping at high zoom instead of overflowing */
+  flex-wrap: wrap; /* allow wrapping at high zoom instead of overflowing */
   min-width: 0;
-  overflow: hidden;         /* keep within navbar even if wrap can't save it */
-  max-height: 72px;         /* clamp to navbar height on desktop */
+  overflow: hidden; /* keep within navbar even if wrap can't save it */
+  max-height: 72px; /* clamp to navbar height on desktop */
 }
 
 .nav-link {
@@ -77,18 +77,20 @@
   color: var(--text-secondary);
   text-decoration: none;
   border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
   white-space: nowrap;
 }
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-link.active {
   color: var(--primary-light);
-  background: rgba(26,122,74,0.15);
+  background: rgba(26, 122, 74, 0.15);
 }
 
 /* ── HAMBURGER ── */
@@ -106,7 +108,7 @@
 }
 
 .hamburger:hover {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .hamburger span {
@@ -121,7 +123,9 @@
 /* ── MOBILE MENU ── */
 /* Breakpoint raised to 56em (896px logical) so hamburger kicks in at 125% zoom on 768px screens */
 @media (max-width: 56em) {
-  .hamburger { display: flex; }
+  .hamburger {
+    display: flex;
+  }
 
   .navbar-links {
     position: fixed;
@@ -137,10 +141,12 @@
     display: none;
     max-height: calc(100vh - 72px);
     overflow-y: auto;
-    max-height: unset;    /* override desktop clamp */
+    max-height: unset; /* override desktop clamp */
   }
 
-  .navbar-links.open { display: flex; }
+  .navbar-links.open {
+    display: flex;
+  }
 
   .nav-link {
     padding: clamp(0.65rem, 1.5vw, 0.875rem) clamp(0.75rem, 2vw, 1rem);
@@ -150,7 +156,9 @@
 
 /* Also collapse at larger screens when zoomed (effectively smaller viewport) */
 @media (max-width: 36em) {
-  .brand-name { display: none; }
+  .brand-name {
+    display: none;
+  }
 }
 
 /* ── User area & Logout ────────────────────────────────────────────── */
@@ -169,8 +177,8 @@
 }
 
 .btn-logout {
-  background: rgba(239,68,68,0.1);
-  border: 1px solid rgba(239,68,68,0.3);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   color: #f87171;
   border-radius: var(--radius);
   padding: 6px 14px;
@@ -183,10 +191,12 @@
 }
 
 .btn-logout:hover {
-  background: rgba(239,68,68,0.2);
+  background: rgba(239, 68, 68, 0.2);
   border-color: #f87171;
 }
 
 @media (min-width: 560px) {
-  .navbar-username { display: block; }
+  .navbar-username {
+    display: block;
+  }
 }

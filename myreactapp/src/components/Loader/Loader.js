@@ -10,10 +10,10 @@
  * Used in: pages/Weather/Weather.js
  */
 
-import React from 'react';
-import './Loader.css';
+import React from "react";
+import "./Loader.css";
 
-function Loader({ text = 'Loading…' }) {
+function Loader({ text = "Loading…" }) {
   return (
     <div className="loader-container" role="status" aria-live="polite">
       <div className="loader-spinner" aria-hidden="true" />

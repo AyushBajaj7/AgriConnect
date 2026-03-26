@@ -6,34 +6,42 @@
  * Used in: App.js (route /schemes)
  */
 
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { getAllSchemes, SCHEME_STATUSES } from '../../services/schemeService';
-import './GovernmentSchemes.css';
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { getAllSchemes, SCHEME_STATUSES } from "../../services/schemeService";
+import "./GovernmentSchemes.css";
 
 const STATUS_LABELS = {
-  all: 'All', ongoing: 'Ongoing', upcoming: 'Upcoming', completed: 'Completed',
+  all: "All",
+  ongoing: "Ongoing",
+  upcoming: "Upcoming",
+  completed: "Completed",
 };
 const STATUS_ICONS = {
-  ongoing: '🟢', upcoming: '🔵', completed: '⚪',
+  ongoing: "🟢",
+  upcoming: "🔵",
+  completed: "⚪",
 };
 
 function GovernmentSchemes() {
-  const [searchQuery,    setSearchQuery]    = useState('');
-  const [activeStatus,   setActiveStatus]   = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeStatus, setActiveStatus] = useState("all");
 
   const allSchemes = getAllSchemes();
 
   // Status counts for tab badges
   const counts = useMemo(() => {
     const c = { all: allSchemes.length, ongoing: 0, upcoming: 0, completed: 0 };
-    allSchemes.forEach(s => { c[s.status] = (c[s.status] ?? 0) + 1; });
+    allSchemes.forEach((s) => {
+      c[s.status] = (c[s.status] ?? 0) + 1;
+    });
     return c;
   }, [allSchemes]);
 
-  const filtered = allSchemes.filter(s => {
-    const matchStatus = activeStatus === 'all' || s.status === activeStatus;
-    const matchSearch = !searchQuery ||
+  const filtered = allSchemes.filter((s) => {
+    const matchStatus = activeStatus === "all" || s.status === activeStatus;
+    const matchSearch =
+      !searchQuery ||
       s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.ministry?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchStatus && matchSearch;
@@ -43,18 +51,19 @@ function GovernmentSchemes() {
     <div className="page-container">
       <h1 className="page-title">🏛️ Government Schemes</h1>
       <p className="page-subtitle">
-        Explore active, upcoming, and completed central &amp; state agricultural schemes. Ongoing schemes are listed first.
+        Explore active, upcoming, and completed central &amp; state agricultural
+        schemes. Ongoing schemes are listed first.
       </p>
 
       {/* Status filter tabs */}
       <div className="schemes-status-tabs">
-        {SCHEME_STATUSES.map(status => (
+        {SCHEME_STATUSES.map((status) => (
           <button
             key={status}
-            className={`scheme-status-tab scheme-status-tab-${status}${activeStatus === status ? ' active' : ''}`}
+            className={`scheme-status-tab scheme-status-tab-${status}${activeStatus === status ? " active" : ""}`}
             onClick={() => setActiveStatus(status)}
           >
-            {STATUS_ICONS[status] ?? '📋'} {STATUS_LABELS[status]}
+            {STATUS_ICONS[status] ?? "📋"} {STATUS_LABELS[status]}
             <span className="scheme-tab-count">{counts[status] ?? 0}</span>
           </button>
         ))}
@@ -66,13 +75,14 @@ function GovernmentSchemes() {
           type="text"
           placeholder="🔍 Search by scheme name or ministry…"
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           aria-label="Search government schemes"
         />
       </div>
 
       <div className="schemes-count">
-        Showing <strong>{filtered.length}</strong> of {allSchemes.length} schemes
+        Showing <strong>{filtered.length}</strong> of {allSchemes.length}{" "}
+        schemes
       </div>
 
       {filtered.length > 0 ? (
@@ -97,18 +107,25 @@ function GovernmentSchemes() {
                 <p className="scheme-desc">{scheme.description}</p>
                 <div className="scheme-meta">
                   {scheme.ministry && (
-                    <span className="scheme-ministry">🏛️ {scheme.ministry}</span>
+                    <span className="scheme-ministry">
+                      🏛️ {scheme.ministry}
+                    </span>
                   )}
                   {scheme.budget && (
                     <span className="scheme-budget">💰 {scheme.budget}</span>
                   )}
                   {scheme.deadline && (
-                    <span className="scheme-deadline">📅 {scheme.deadline}</span>
+                    <span className="scheme-deadline">
+                      📅 {scheme.deadline}
+                    </span>
                   )}
                 </div>
               </div>
 
-              <Link to={`/scheme/${scheme.id}`} className="btn-secondary scheme-cta">
+              <Link
+                to={`/scheme/${scheme.id}`}
+                className="btn-secondary scheme-cta"
+              >
                 Details →
               </Link>
             </li>
@@ -116,7 +133,9 @@ function GovernmentSchemes() {
         </ul>
       ) : (
         <div className="no-results">
-          <p>No schemes found for "<strong>{searchQuery}</strong>"</p>
+          <p>
+            No schemes found for "<strong>{searchQuery}</strong>"
+          </p>
         </div>
       )}
     </div>

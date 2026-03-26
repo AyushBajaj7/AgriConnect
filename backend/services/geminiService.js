@@ -13,15 +13,15 @@
  * before the conversation history so Gemini can cite specific facts.
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { withRetry } = require('./retryHelper');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { withRetry } = require("./retryHelper");
 
 // ── 1. Initialize Gemini client ──────────────────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ── 2. Create model with agricultural system instruction ─────────────────────
 const model = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash',
+  model: "gemini-2.0-flash",
   systemInstruction: `You are AgriBot, an expert agricultural assistant for AgriConnect — India's premier farmer portal.
 
 You have access to a knowledge base about Indian farming. When RETRIEVED KNOWLEDGE is provided, use it as your primary source and cite specific facts (prices, eligibility, deadlines) from it.
@@ -53,14 +53,15 @@ const MAX_MSG_LENGTH = 2000;
  */
 function sanitizeHistory(history) {
   const valid = history.filter(
-    m => (m.role === 'user' || m.role === 'model') && typeof m.text === 'string'
+    (m) =>
+      (m.role === "user" || m.role === "model") && typeof m.text === "string",
   );
   const result = [];
-  let expected = 'user';
+  let expected = "user";
   for (const msg of valid) {
     if (msg.role !== expected) continue;
     result.push({ role: msg.role, parts: [{ text: msg.text }] });
-    expected = expected === 'user' ? 'model' : 'user';
+    expected = expected === "user" ? "model" : "user";
   }
   return result;
 }
@@ -77,7 +78,7 @@ function sanitizeHistory(history) {
  * @param {string} context      — RAG-retrieved knowledge chunks (may be empty)
  * @returns {Promise<string>}   — AI response text
  */
-async function generateResponse(userPrompt, history = [], context = '') {
+async function generateResponse(userPrompt, history = [], context = "") {
   const prompt = userPrompt.slice(0, MAX_MSG_LENGTH);
 
   // If RAG found relevant chunks, prepend as a knowledge block ahead of history
@@ -85,14 +86,28 @@ async function generateResponse(userPrompt, history = [], context = '') {
   const sanitized = sanitizeHistory(history);
   const fullHistory = context
     ? [
-        { role: 'user',  parts: [{ text: `RETRIEVED KNOWLEDGE:\n${context}\n\nKeep this in mind when answering my next question.` }] },
-        { role: 'model', parts: [{ text: 'Understood. I will use this knowledge to give you accurate, specific answers.' }] },
+        {
+          role: "user",
+          parts: [
+            {
+              text: `RETRIEVED KNOWLEDGE:\n${context}\n\nKeep this in mind when answering my next question.`,
+            },
+          ],
+        },
+        {
+          role: "model",
+          parts: [
+            {
+              text: "Understood. I will use this knowledge to give you accurate, specific answers.",
+            },
+          ],
+        },
         ...sanitized,
       ]
     : sanitized;
 
   // Start chat with history (multi-turn context) — equivalent to generateContent()
-  const chat   = model.startChat({ history: fullHistory });
+  const chat = model.startChat({ history: fullHistory });
   const result = await withRetry(() => chat.sendMessage(prompt));
 
   // Response handling — mirrors original snippet's result.response.text()

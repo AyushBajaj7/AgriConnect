@@ -25,9 +25,9 @@
 }
 
 .prices-live-badge {
-  background: rgba(26,122,74,0.15);
+  background: rgba(26, 122, 74, 0.15);
   color: var(--primary-light);
-  border: 1px solid rgba(26,122,74,0.3);
+  border: 1px solid rgba(26, 122, 74, 0.3);
   border-radius: 20px;
   padding: 3px 10px;
   font-size: 0.75rem;
@@ -60,7 +60,10 @@
   white-space: nowrap;
 }
 
-.prices-tab:hover { border-color: var(--primary); color: var(--primary-light); }
+.prices-tab:hover {
+  border-color: var(--primary);
+  color: var(--primary-light);
+}
 .prices-tab.active {
   background: var(--primary);
   border-color: var(--primary);
@@ -88,7 +91,10 @@
   font-size: clamp(0.82rem, 1.2vw, 0.9rem);
 }
 
-.prices-search:focus { outline: none; border-color: var(--primary); }
+.prices-search:focus {
+  outline: none;
+  border-color: var(--primary);
+}
 
 .prices-sort {
   padding: 10px 12px;
@@ -122,7 +128,7 @@
 }
 
 .prices-table thead {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -141,12 +147,16 @@
 }
 
 .prices-row {
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   transition: background 0.15s;
 }
 
-.prices-row:last-child { border-bottom: none; }
-.prices-row:hover { background: rgba(26,122,74,0.06); }
+.prices-row:last-child {
+  border-bottom: none;
+}
+.prices-row:hover {
+  background: rgba(26, 122, 74, 0.06);
+}
 
 .prices-table td {
   padding: clamp(0.75rem, 1.5vw, 1rem) clamp(0.875rem, 2vw, 1.25rem);
@@ -154,14 +164,37 @@
 }
 
 /* Market cell */
-.prices-market { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.prices-pin { font-size: 1rem; flex-shrink: 0; }
-.prices-market-name { font-size: clamp(0.82rem, 1.2vw, 0.9rem); font-weight: 500; color: var(--text-primary); }
-.prices-state { font-size: clamp(0.7rem, 1vw, 0.77rem); color: var(--text-muted); margin-top: 2px; }
+.prices-market {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.prices-pin {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.prices-market-name {
+  font-size: clamp(0.82rem, 1.2vw, 0.9rem);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.prices-state {
+  font-size: clamp(0.7rem, 1vw, 0.77rem);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
 
 /* Commodity cell */
-.prices-commodity { font-size: clamp(0.82rem, 1.2vw, 0.9rem); color: var(--text-primary); font-weight: 500; }
-.prices-variety    { color: var(--text-muted); font-weight: 400; }
+.prices-commodity {
+  font-size: clamp(0.82rem, 1.2vw, 0.9rem);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.prices-variety {
+  color: var(--text-muted);
+  font-weight: 400;
+}
 
 /* Category badges */
 .prices-cat-badge {
@@ -173,11 +206,26 @@
   font-weight: 700;
   letter-spacing: 0.6px;
 }
-.prices-cat-crops       { background: rgba(26,122,74,0.15);  color: #2da05f; }
-.prices-cat-vegetables  { background: rgba(245,166,35,0.15); color: #d4890a; }
-.prices-cat-fruits      { background: rgba(99,102,241,0.15); color: #818cf8; }
-.prices-cat-seeds       { background: rgba(236,72,153,0.15); color: #f472b6; }
-.prices-cat-fertilizers { background: rgba(148,163,184,0.1); color: #94a3b8; }
+.prices-cat-crops {
+  background: rgba(26, 122, 74, 0.15);
+  color: #2da05f;
+}
+.prices-cat-vegetables {
+  background: rgba(245, 166, 35, 0.15);
+  color: #d4890a;
+}
+.prices-cat-fruits {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+.prices-cat-seeds {
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+}
+.prices-cat-fertilizers {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+}
 
 /* Distance */
 .prices-distance {
@@ -187,18 +235,45 @@
 }
 
 /* Price range */
-.prices-range { font-size: clamp(0.72rem, 1vw, 0.8rem); white-space: nowrap; }
-.range-min { color: var(--text-muted); }
-.range-sep { color: var(--text-muted); }
-.range-max { color: var(--text-muted); }
+.prices-range {
+  font-size: clamp(0.72rem, 1vw, 0.8rem);
+  white-space: nowrap;
+}
+.range-min {
+  color: var(--text-muted);
+}
+.range-sep {
+  color: var(--text-muted);
+}
+.range-max {
+  color: var(--text-muted);
+}
 
 /* Modal price + trend */
-.prices-modal { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.prices-modal-value { font-size: clamp(0.9rem, 1.4vw, 1.05rem); font-weight: 700; color: var(--primary-light); }
-.prices-trend { font-size: 0.85rem; font-weight: 700; }
-.trend-up     { color: #22c55e; }
-.trend-down   { color: #f87171; }
-.trend-stable { color: var(--text-muted); }
+.prices-modal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.prices-modal-value {
+  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+  font-weight: 700;
+  color: var(--primary-light);
+}
+.prices-trend {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.trend-up {
+  color: #22c55e;
+}
+.trend-down {
+  color: #f87171;
+}
+.trend-stable {
+  color: var(--text-muted);
+}
 
 /* Navigate button */
 .btn-navigate {
@@ -214,7 +289,10 @@
   white-space: nowrap;
   transition: all 0.2s;
 }
-.btn-navigate:hover { background: var(--primary); color: #fff; }
+.btn-navigate:hover {
+  background: var(--primary);
+  color: #fff;
+}
 
 /* Empty state */
 .prices-empty {

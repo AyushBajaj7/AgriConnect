@@ -16,28 +16,28 @@
  * Used in: pages/Dashboard/Dashboard.js
  */
 
-import React from 'react';
-import './Card.css';
+import React from "react";
+import "./Card.css";
 
 function Card({ icon, title, value, subtitle, badge, onClick, children }) {
-  const isClickable = typeof onClick === 'function';
+  const isClickable = typeof onClick === "function";
 
   return (
     <div
-      className={`card-component${isClickable ? ' clickable' : ''}`}
+      className={`card-component${isClickable ? " clickable" : ""}`}
       onClick={onClick}
-      role={isClickable ? 'button' : undefined}
+      role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
     >
-      {icon     && <div className="card-icon">{icon}</div>}
-      {badge    && (
-        <span className={`badge badge-${badge.color ?? 'green'}`}>
+      {icon && <div className="card-icon">{icon}</div>}
+      {badge && (
+        <span className={`badge badge-${badge.color ?? "green"}`}>
           {badge.label}
         </span>
       )}
-      {title    && <h3 className="card-title">{title}</h3>}
-      {value    && <p  className="card-value">{value}</p>}
-      {subtitle && <p  className="card-subtitle">{subtitle}</p>}
+      {title && <h3 className="card-title">{title}</h3>}
+      {value && <p className="card-value">{value}</p>}
+      {subtitle && <p className="card-subtitle">{subtitle}</p>}
       {children}
     </div>
   );

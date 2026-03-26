@@ -8,25 +8,25 @@
  * Used in: App.js (AppLayout — renders on every page except /login)
  */
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './Footer.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import "./Footer.css";
 
 /** Navigation columns shown in the footer link area. */
 const FOOTER_NAV = [
   {
-    heading: 'Platform',
+    heading: "Platform",
     links: [
-      { label: 'Dashboard',  to: '/dashboard'   },
-      { label: 'Gov. Schemes', to: '/schemes'   },
-      { label: 'Crop Prices', to: '/crop-prices' },
+      { label: "Dashboard", to: "/dashboard" },
+      { label: "Gov. Schemes", to: "/schemes" },
+      { label: "Crop Prices", to: "/crop-prices" },
     ],
   },
   {
-    heading: 'Tools',
+    heading: "Tools",
     links: [
-      { label: 'Farming Tools', to: '/tools'   },
-      { label: 'Weather',       to: '/weather' },
+      { label: "Farming Tools", to: "/tools" },
+      { label: "Weather", to: "/weather" },
     ],
   },
 ];
@@ -42,7 +42,9 @@ function Footer() {
           <span className="footer-icon">🌾</span>
           <div>
             <p className="footer-name">AgriConnect</p>
-            <p className="footer-tagline">Connecting Farmers, Growing Futures</p>
+            <p className="footer-tagline">
+              Connecting Farmers, Growing Futures
+            </p>
           </div>
         </div>
 
@@ -52,7 +54,9 @@ function Footer() {
             <div key={heading} className="footer-col">
               <h4>{heading}</h4>
               {links.map(({ label, to }) => (
-                <Link key={to} to={to}>{label}</Link>
+                <Link key={to} to={to}>
+                  {label}
+                </Link>
               ))}
             </div>
           ))}

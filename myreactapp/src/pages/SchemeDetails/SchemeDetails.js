@@ -9,10 +9,10 @@
  * Used in: App.js (route /scheme/:id)
  */
 
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getSchemeById } from '../../services/schemeService';
-import './SchemeDetails.css';
+import React from "react";
+import { useParams, Link } from "react-router-dom";
+import { getSchemeById } from "../../services/schemeService";
+import "./SchemeDetails.css";
 
 function SchemeDetails() {
   const { id } = useParams();
@@ -28,7 +28,9 @@ function SchemeDetails() {
           <span>⚠️</span>
           <h2>Scheme Not Found</h2>
           <p>The scheme you are looking for does not exist.</p>
-          <Link to="/schemes" className="btn-primary">← Back to Schemes</Link>
+          <Link to="/schemes" className="btn-primary">
+            ← Back to Schemes
+          </Link>
         </div>
       </div>
     );
@@ -36,7 +38,9 @@ function SchemeDetails() {
 
   return (
     <div className="page-container">
-      <Link to="/schemes" className="back-link">← All Schemes</Link>
+      <Link to="/schemes" className="back-link">
+        ← All Schemes
+      </Link>
 
       <div className="scheme-detail-card animate-fade-in">
         <div className="scheme-detail-badge">
@@ -52,8 +56,8 @@ function SchemeDetails() {
 
           <h3>Eligibility</h3>
           <p>
-            All Indian farmers registered with their respective state agriculture
-            departments are eligible to apply.
+            All Indian farmers registered with their respective state
+            agriculture departments are eligible to apply.
           </p>
 
           <h3>Benefits</h3>

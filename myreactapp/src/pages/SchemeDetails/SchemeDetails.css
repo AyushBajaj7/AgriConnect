@@ -15,7 +15,9 @@
   transition: color 0.2s;
 }
 
-.back-link:hover { color: var(--primary-light); }
+.back-link:hover {
+  color: var(--primary-light);
+}
 
 .scheme-detail-card {
   background: var(--bg-card);
@@ -26,10 +28,12 @@
   overflow: hidden;
 }
 
-.scheme-detail-badge { margin-bottom: clamp(0.75rem, 1.5vw, 1rem); }
+.scheme-detail-badge {
+  margin-bottom: clamp(0.75rem, 1.5vw, 1rem);
+}
 
 .scheme-detail-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: clamp(1.25rem, 3vw, 1.8rem);
   font-weight: 700;
   color: var(--text-primary);
@@ -77,7 +81,9 @@
   text-align: center;
 }
 
-.not-found span { font-size: clamp(2rem, 5vw, 3rem); }
+.not-found span {
+  font-size: clamp(2rem, 5vw, 3rem);
+}
 
 .not-found h2 {
   font-size: clamp(1.1rem, 2.5vw, 1.4rem);
@@ -85,4 +91,6 @@
   word-break: break-word;
 }
 
-.not-found p { color: var(--text-muted); }
+.not-found p {
+  color: var(--text-muted);
+}

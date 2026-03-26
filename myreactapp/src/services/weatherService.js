@@ -11,9 +11,9 @@
  */
 
 /** @see https://openweathermap.org — replace with an env variable in production. */
-const API_KEY = '6a173adde35f78487a42908af69bdf1d';
+const API_KEY = "6a173adde35f78487a42908af69bdf1d";
 
-const WEATHER_BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
 
 /**
  * Shared fetch wrapper. Returns parsed JSON or a normalised error object.
@@ -29,14 +29,14 @@ async function apiFetch(url) {
     if (!response.ok) {
       const message =
         response.status === 404
-          ? 'City not found. Please check the spelling.'
+          ? "City not found. Please check the spelling."
           : `API error ${response.status}. Please try again.`;
       return { error: message };
     }
 
     return await response.json();
   } catch {
-    return { error: 'Network error. Please check your connection.' };
+    return { error: "Network error. Please check your connection." };
   }
 }
 

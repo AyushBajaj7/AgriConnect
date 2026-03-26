@@ -26,15 +26,17 @@ async function withRetry(fn, maxRetries = 3, baseDelayMs = 5000) {
 
       const isRateLimit =
         err?.status === 429 ||
-        err?.message?.includes('429') ||
-        err?.message?.toLowerCase().includes('resource_exhausted') ||
-        err?.message?.toLowerCase().includes('quota');
+        err?.message?.includes("429") ||
+        err?.message?.toLowerCase().includes("resource_exhausted") ||
+        err?.message?.toLowerCase().includes("quota");
 
       if (!isRateLimit || attempt === maxRetries) throw err;
 
       const waitMs = baseDelayMs * Math.pow(2, attempt); // 5s, 10s, 20s
-      console.warn(`[Retry] Rate limit hit — waiting ${waitMs / 1000}s before attempt ${attempt + 2}/${maxRetries + 1}`);
-      await new Promise(r => setTimeout(r, waitMs));
+      console.warn(
+        `[Retry] Rate limit hit — waiting ${waitMs / 1000}s before attempt ${attempt + 2}/${maxRetries + 1}`,
+      );
+      await new Promise((r) => setTimeout(r, waitMs));
     }
   }
 

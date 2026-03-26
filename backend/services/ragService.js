@@ -16,28 +16,33 @@
  * Knowledge base: 55 chunks across schemes, crops, tools, and general topics.
  */
 
-const fs     = require('fs');
-const path   = require('path');
-const crypto = require('crypto');
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
 
-const { getEmbedding, cosineSimilarity } = require('./embeddingService');
+const { getEmbedding, cosineSimilarity } = require("./embeddingService");
 
 // Knowledge base files
-const schemeChunks  = require('../knowledge/schemes');
-const cropChunks    = require('../knowledge/crops');
-const toolChunks    = require('../knowledge/tools');
-const generalChunks = require('../knowledge/general');
+const schemeChunks = require("../knowledge/schemes");
+const cropChunks = require("../knowledge/crops");
+const toolChunks = require("../knowledge/tools");
+const generalChunks = require("../knowledge/general");
 
-const ALL_CHUNKS = [...schemeChunks, ...cropChunks, ...toolChunks, ...generalChunks];
+const ALL_CHUNKS = [
+  ...schemeChunks,
+  ...cropChunks,
+  ...toolChunks,
+  ...generalChunks,
+];
 
 /** Path to the disk cache (persists between restarts) */
-const CACHE_FILE = path.join(__dirname, '../.embedding_cache.json');
+const CACHE_FILE = path.join(__dirname, "../.embedding_cache.json");
 
 /** In-memory vector store — loaded once at startup */
 const knowledgeStore = []; // Array<{ text: string, embedding: number[] }>
 
 /** Derive a stable cache key from chunk text */
-const chunkKey = text => crypto.createHash('md5').update(text).digest('hex');
+const chunkKey = (text) => crypto.createHash("md5").update(text).digest("hex");
 
 /**
  * Initialize RAG: embed all knowledge chunks once and store in memory.
@@ -51,10 +56,12 @@ async function initRAG() {
   let cache = {};
   if (fs.existsSync(CACHE_FILE)) {
     try {
-      cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
-      console.log(`[RAG] Loaded ${Object.keys(cache).length} cached embeddings`);
+      cache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
+      console.log(
+        `[RAG] Loaded ${Object.keys(cache).length} cached embeddings`,
+      );
     } catch {
-      console.warn('[RAG] Cache file corrupted — re-embedding all chunks');
+      console.warn("[RAG] Cache file corrupted — re-embedding all chunks");
     }
   }
 
@@ -74,7 +81,7 @@ async function initRAG() {
       newEmbeddings++;
 
       // Small delay between API calls to avoid rate-limiting
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 200));
     }
   }
 
@@ -96,18 +103,18 @@ async function initRAG() {
  * @param {number} minScore — minimum cosine similarity threshold (default: 0.5)
  * @returns {Promise<string>} — formatted context or empty string if nothing relevant
  */
-async function retrieveContext(query, topK = 3, minScore = 0.50) {
+async function retrieveContext(query, topK = 3, minScore = 0.5) {
   if (knowledgeStore.length === 0) {
-    console.warn('[RAG] Knowledge store empty — RAG not initialized?');
-    return '';
+    console.warn("[RAG] Knowledge store empty — RAG not initialized?");
+    return "";
   }
 
   // Embed the query
   const queryEmbedding = await getEmbedding(query);
 
   // Score all chunks by cosine similarity to the query
-  const scored = knowledgeStore.map(item => ({
-    text:  item.text,
+  const scored = knowledgeStore.map((item) => ({
+    text: item.text,
     score: cosineSimilarity(queryEmbedding, item.embedding),
   }));
 
@@ -115,14 +122,14 @@ async function retrieveContext(query, topK = 3, minScore = 0.50) {
   const topChunks = scored
     .sort((a, b) => b.score - a.score)
     .slice(0, topK)
-    .filter(s => s.score >= minScore);
+    .filter((s) => s.score >= minScore);
 
-  if (topChunks.length === 0) return '';
+  if (topChunks.length === 0) return "";
 
   // Format for Gemini prompt injection
   return topChunks
     .map((s, i) => `[Knowledge ${i + 1}]\n${s.text}`)
-    .join('\n\n');
+    .join("\n\n");
 }
 
 /** True once initRAG() has completed */

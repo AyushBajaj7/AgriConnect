@@ -1,120 +1,15 @@
-# 🌾 AgriConnect — Agriculture Portal
+# AgriConnect Frontend
 
-AgriConnect is a production-ready React web application that gives Indian farmers a single portal to access government schemes, live crop market prices, farming tools, and real-time weather data with agronomic insights.
+This directory contains the React SPA for AgriConnect. 
+Please see the main [README.md](../README.md) in the root directory for full project setup and architectural details.
 
----
+## Available Scripts
 
-## 🚀 Getting Started
+In the project directory, you can run:
 
-### Prerequisites
-- **Node.js** ≥ 18 (LTS recommended)
-- **npm** ≥ 9
+### `npm start`
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-### Install & Run
-
-```bash
-# Install dependencies
-npm install
-
-# Start the development server (default port 3003)
-npm start
-```
-
-Open [http://localhost:3003](http://localhost:3003) in your browser.
-
-**Demo credentials:** `admin` / `password123`
-
----
-
-## 📁 Project Structure
-
-```
-src/
-├── assets/               # Static data (fallback data files)
-├── components/
-│   ├── Card/             # Reusable info card
-│   ├── Chatbot/          # Floating AI chat widget (Chatbase)
-│   ├── Footer/           # Site-wide footer
-│   ├── Loader/           # Loading spinner
-│   └── Navbar/           # Fixed top navigation bar
-├── pages/
-│   ├── Login/            # Login page (/login)
-│   ├── Dashboard/        # Landing page (/dashboard)
-│   ├── GovernmentSchemes/# Searchable scheme list (/schemes)
-│   ├── SchemeDetails/    # Single scheme detail (/scheme/:id)
-│   ├── CropPrices/       # Market price grid (/crop-prices)
-│   ├── FarmingTools/     # Tools & machinery (/tools)
-│   └── Weather/          # Weather + Crop Health Index (/weather)
-├── services/
-│   ├── authService.js    # Session auth (demo)
-│   ├── schemeService.js  # Government schemes data
-│   └── weatherService.js # OpenWeatherMap API client
-├── styles/
-│   └── global.css        # Design tokens, reset, shared utilities
-├── App.js                # Route definitions
-└── index.js              # React entry point
-```
-
----
-
-## 🌤️ Weather Page — API Details
-
-The Weather page uses the **OpenWeatherMap** free-tier API for:
-
-| Endpoint | Data |
-|---|---|
-| `data/2.5/weather` | Current temperature, humidity, wind, rainfall |
-| `data/2.5/forecast` | 5-day / 3-hour forecast |
-| `data/2.5/air_pollution` | AQI, PM2.5, PM10, O₃, NO₂, SO₂, CO |
-
-> ⚠️ The API key is currently hard-coded in `weatherService.js`.  
-> Move it to a `.env` file (`REACT_APP_WEATHER_KEY`) before deploying.
-
-### Crop Health Index (CHI)
-A multi-factor algorithm (0–100 score) combining temperature, humidity, AQI, PM2.5, visibility, and rainfall to give farmers an agronomic risk assessment.
-
----
-
-## 🏛️ Government Schemes
-25 central and state government schemes are included in `schemeService.js` as a static dataset. Replace with an API call to make it dynamic.
-
----
-
-## 🎨 Design System
-
-| Token | Value |
-|---|---|
-| Primary | `#1a7a4a` |
-| Primary Light | `#2da05f` |
-| Accent | `#f5a623` |
-| Background | `#0d1f15` |
-| Card BG | `#132b1d` |
-| Font | Inter (body) + Outfit (headings) |
-
-All spacing and typography uses `clamp()` for fluid scaling across zoom levels (75%–200%) and screen sizes (mobile to desktop).
-
----
-
-## 📦 Key Dependencies
-
-| Package | Purpose |
-|---|---|
-| `react` 18 | UI framework |
-| `react-router-dom` v6 | Client-side routing |
-| `react-scripts` | CRA build toolchain |
-
----
-
-## 🔒 Production Checklist
-
-- [ ] Move API key to `.env` → `REACT_APP_WEATHER_KEY=...`
-- [ ] Replace static scheme/price data with real API endpoints
-- [ ] Add route guards so unauthenticated users can't bypass `/login`
-- [ ] Replace sessionStorage auth with a JWT-based backend
-- [ ] Run `npm run build` and deploy `build/` to Vercel or Netlify
-
----
-
-## 📄 License
-
-MIT — built as an open-source agriculture aid platform.
+### `npm run build`
+Builds the app for production to the `build` folder.

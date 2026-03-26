@@ -15,7 +15,7 @@
 
 /** Backend base URL — set REACT_APP_BACKEND_URL in .env for production */
 const BACKEND_URL =
-  (process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:5000') + '/api/chat';
+  (process.env.REACT_APP_BACKEND_URL ?? "http://localhost:5000") + "/api/chat";
 
 /**
  * Sends a user message to the backend and returns the AI response text.
@@ -27,15 +27,15 @@ const BACKEND_URL =
  */
 export async function sendChatMessage(history, userMessage) {
   const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 25000);
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   try {
     const res = await fetch(BACKEND_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         message: userMessage,
-        history: history.map(m => ({ role: m.role, text: m.text })),
+        history: history.map((m) => ({ role: m.role, text: m.text })),
       }),
       signal: controller.signal,
     });
@@ -45,38 +45,42 @@ export async function sendChatMessage(history, userMessage) {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      console.error('Backend error:', res.status, data);
+      console.error("Backend error:", res.status, data);
       if (res.status === 429) {
-        return '⏳ AgriBot is busy. Please wait 30 seconds and try again.';
+        return "⏳ AgriBot is busy. Please wait 30 seconds and try again.";
       }
       if (res.status === 400) {
-        return 'Please type a message before sending.';
+        return "Please type a message before sending.";
       }
       return data.error ?? `Error ${res.status}. Please try again.`;
     }
 
-    return data.response ?? "I didn't receive a proper response. Please rephrase.";
-
+    return (
+      data.response ?? "I didn't receive a proper response. Please rephrase."
+    );
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error('chatService fetch error:', error);
+    console.error("chatService fetch error:", error);
 
-    if (error.name === 'AbortError') {
-      return '⏱️ Request timed out. Please try again.';
+    if (error.name === "AbortError") {
+      return "⏱️ Request timed out. Please try again.";
     }
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-      return '🔌 Cannot connect to AgriBot server. Make sure the backend is running on port 5000.';
+    if (
+      error.message?.includes("Failed to fetch") ||
+      error.message?.includes("NetworkError")
+    ) {
+      return "🔌 Cannot connect to AgriBot server. Make sure the backend is running on port 5000.";
     }
-    return 'Network error. Please check your connection.';
+    return "Network error. Please check your connection.";
   }
 }
 
 /** Suggested quick-start questions shown on chatbot open. */
 export const SUGGESTED_QUESTIONS = [
-  'What is PM-KISAN and how to apply?',
-  'Best crops to grow in summer?',
-  'How to improve soil fertility naturally?',
-  'When should I irrigate wheat?',
-  'How to get crop insurance under PMFBY?',
-  'Tractor rent vs buy — which is better?',
+  "What is PM-KISAN and how to apply?",
+  "Best crops to grow in summer?",
+  "How to improve soil fertility naturally?",
+  "When should I irrigate wheat?",
+  "How to get crop insurance under PMFBY?",
+  "Tractor rent vs buy — which is better?",
 ];

@@ -13,33 +13,43 @@
  * Used in: App.js (route /crop-prices)
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { fetchMandiPrices, PRICE_CATEGORIES } from '../../services/priceService';
-import Loader from '../../components/Loader/Loader';
-import './CropPrices.css';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  fetchMandiPrices,
+  PRICE_CATEGORIES,
+} from "../../services/priceService";
+import Loader from "../../components/Loader/Loader";
+import "./CropPrices.css";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 const CATEGORY_LABELS = {
-  all: 'All Items', crops: 'Crops 🌾', vegetables: 'Vegetables 🥦',
-  fruits: 'Fruits 🍎', seeds: 'Seeds 🌱', fertilizers: 'Fertilizers 🧪',
+  all: "All Items",
+  crops: "Crops 🌾",
+  vegetables: "Vegetables 🥦",
+  fruits: "Fruits 🍎",
+  seeds: "Seeds 🌱",
+  fertilizers: "Fertilizers 🧪",
 };
 
-const TREND_ICONS = { up: '↑', down: '↓', stable: '→' };
+const TREND_ICONS = { up: "↑", down: "↓", stable: "→" };
 
 function formatTime(date) {
-  if (!date) return '–';
-  return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  if (!date) return "–";
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function CropPrices() {
-  const [prices,         setPrices]         = useState([]);
-  const [loading,        setLoading]        = useState(true);
-  const [searchQuery,    setSearchQuery]    = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [sortBy,         setSortBy]         = useState('distance');
-  const [lastUpdated,    setLastUpdated]    = useState(null);
-  const [countdown,      setCountdown]      = useState(REFRESH_INTERVAL_MS / 1000);
+  const [prices, setPrices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("distance");
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [countdown, setCountdown] = useState(REFRESH_INTERVAL_MS / 1000);
 
   const loadPrices = useCallback(async () => {
     setLoading(true);
@@ -59,25 +69,30 @@ function CropPrices() {
 
   // Countdown timer (ticks every second)
   useEffect(() => {
-    const tick = setInterval(() => setCountdown(c => Math.max(0, c - 1)), 1000);
+    const tick = setInterval(
+      () => setCountdown((c) => Math.max(0, c - 1)),
+      1000,
+    );
     return () => clearInterval(tick);
   }, [lastUpdated]);
 
   // Filter and sort
   const filtered = prices
-    .filter(p => {
-      const matchSearch = !searchQuery ||
+    .filter((p) => {
+      const matchSearch =
+        !searchQuery ||
         p.commodity.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.market.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.variety.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.state.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchCat = activeCategory === 'all' || p.category === activeCategory;
+      const matchCat =
+        activeCategory === "all" || p.category === activeCategory;
       return matchSearch && matchCat;
     })
     .sort((a, b) => {
-      if (sortBy === 'distance')   return a.distance - b.distance;
-      if (sortBy === 'price-asc')  return a.modalPrice - b.modalPrice;
-      if (sortBy === 'price-desc') return b.modalPrice - a.modalPrice;
+      if (sortBy === "distance") return a.distance - b.distance;
+      if (sortBy === "price-asc") return a.modalPrice - b.modalPrice;
+      if (sortBy === "price-desc") return b.modalPrice - a.modalPrice;
       return 0;
     });
 
@@ -87,7 +102,8 @@ function CropPrices() {
         <div>
           <h1 className="page-title">📊 Market Prices</h1>
           <p className="page-subtitle">
-            Compare daily modal prices across different mandis to find the best rate.
+            Compare daily modal prices across different mandis to find the best
+            rate.
           </p>
         </div>
         <div className="prices-refresh-info">
@@ -95,10 +111,11 @@ function CropPrices() {
           <span className="prices-updated">
             Updated: {formatTime(lastUpdated)}
           </span>
-          <span className="prices-countdown">
-            Refreshing in {countdown}s
-          </span>
-          <button className="btn-secondary prices-refresh-btn" onClick={loadPrices}>
+          <span className="prices-countdown">Refreshing in {countdown}s</span>
+          <button
+            className="btn-secondary prices-refresh-btn"
+            onClick={loadPrices}
+          >
             ↻ Refresh
           </button>
         </div>
@@ -106,10 +123,10 @@ function CropPrices() {
 
       {/* Category tabs */}
       <div className="prices-category-tabs">
-        {PRICE_CATEGORIES.map(cat => (
+        {PRICE_CATEGORIES.map((cat) => (
           <button
             key={cat}
-            className={`prices-tab${activeCategory === cat ? ' active' : ''}`}
+            className={`prices-tab${activeCategory === cat ? " active" : ""}`}
             onClick={() => setActiveCategory(cat)}
           >
             {CATEGORY_LABELS[cat]}
@@ -124,12 +141,12 @@ function CropPrices() {
           type="text"
           placeholder="🔍 Search crops, mandis, states…"
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
         <select
           className="prices-sort"
           value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
+          onChange={(e) => setSortBy(e.target.value)}
         >
           <option value="distance">Sort by Distance</option>
           <option value="price-asc">Price: Low → High</option>
@@ -154,7 +171,7 @@ function CropPrices() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(item => (
+              {filtered.map((item) => (
                 <tr key={item.id} className="prices-row">
                   <td className="prices-market">
                     <span className="prices-pin">📍</span>
@@ -165,25 +182,31 @@ function CropPrices() {
                   </td>
                   <td className="prices-crop">
                     <div className="prices-commodity">
-                      {item.commodity}{' '}
+                      {item.commodity}{" "}
                       <span className="prices-variety">({item.variety})</span>
                     </div>
-                    <span className={`prices-cat-badge prices-cat-${item.category}`}>
+                    <span
+                      className={`prices-cat-badge prices-cat-${item.category}`}
+                    >
                       {item.category.toUpperCase()}
                     </span>
                   </td>
                   <td className="prices-distance">{item.distance} km</td>
                   <td className="prices-range">
-                    <span className="range-min">₹{item.minPrice.toLocaleString('en-IN')}</span>
+                    <span className="range-min">
+                      ₹{item.minPrice.toLocaleString("en-IN")}
+                    </span>
                     <span className="range-sep"> – </span>
-                    <span className="range-max">₹{item.maxPrice.toLocaleString('en-IN')}</span>
+                    <span className="range-max">
+                      ₹{item.maxPrice.toLocaleString("en-IN")}
+                    </span>
                   </td>
                   <td className="prices-modal">
                     <span className={`prices-trend trend-${item.trend}`}>
                       {TREND_ICONS[item.trend]}
                     </span>
                     <span className="prices-modal-value">
-                      ₹ {item.modalPrice.toLocaleString('en-IN')}
+                      ₹ {item.modalPrice.toLocaleString("en-IN")}
                     </span>
                   </td>
                   <td>
@@ -203,7 +226,10 @@ function CropPrices() {
 
           {filtered.length === 0 && (
             <div className="prices-empty">
-              <p>No results for "<strong>{searchQuery}</strong>" in {CATEGORY_LABELS[activeCategory]}.</p>
+              <p>
+                No results for "<strong>{searchQuery}</strong>" in{" "}
+                {CATEGORY_LABELS[activeCategory]}.
+              </p>
             </div>
           )}
         </div>

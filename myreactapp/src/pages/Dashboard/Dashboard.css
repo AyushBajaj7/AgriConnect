@@ -11,7 +11,11 @@
   gap: clamp(1rem, 3vw, 1.5rem);
   margin-bottom: clamp(1.5rem, 4vw, 3rem);
   padding: clamp(1.25rem, 4vw, 2.5rem);
-  background: linear-gradient(135deg, rgba(26,122,74,0.1), rgba(13,31,21,0.5));
+  background: linear-gradient(
+    135deg,
+    rgba(26, 122, 74, 0.1),
+    rgba(13, 31, 21, 0.5)
+  );
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   flex-wrap: wrap;
@@ -19,7 +23,10 @@
   overflow: hidden;
 }
 
-.dashboard-hero > div { min-width: 0; flex: 1 1 200px; }
+.dashboard-hero > div {
+  min-width: 0;
+  flex: 1 1 200px;
+}
 
 .dashboard-stats {
   display: grid;
@@ -47,10 +54,12 @@
   background: var(--bg-card-hover);
 }
 
-.stat-icon { font-size: clamp(1.3rem, 2.5vw, 1.6rem); }
+.stat-icon {
+  font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+}
 
 .stat-value {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: clamp(1.4rem, 3vw, 1.8rem);
   font-weight: 700;
   color: var(--primary-light);
@@ -65,7 +74,7 @@
 }
 
 .section-heading {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-size: clamp(0.8rem, 1.5vw, 1rem);
   font-weight: 600;
   color: var(--text-secondary);
