@@ -27,7 +27,7 @@ const BACKEND_URL =
  */
 export async function sendChatMessage(history, userMessage) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
 
   try {
     const res = await fetch(BACKEND_URL, {
@@ -35,7 +35,6 @@ export async function sendChatMessage(history, userMessage) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: userMessage,
-        history: history.map((m) => ({ role: m.role, text: m.text })),
       }),
       signal: controller.signal,
     });

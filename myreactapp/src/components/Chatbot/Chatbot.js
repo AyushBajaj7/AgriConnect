@@ -130,7 +130,7 @@ function Chatbot() {
               <div>
                 <div className="chatbot-name">AgriBot</div>
                 <div className="chatbot-status">
-                  ● Online · Powered by Gemini AI
+                  ● Online · Powered by Local AI
                 </div>
               </div>
             </div>
