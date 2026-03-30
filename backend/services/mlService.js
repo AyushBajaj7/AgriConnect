@@ -50,12 +50,17 @@ async function getResponse(query) {
       repetition_penalty: 1.1
     });
 
-    const fullText = output[0].generated_text;
+    let fullText = output[0].generated_text;
     
-    // The output contains our prompt, so we split it out
-    const responseText = fullText.split("<|im_start|>assistant\n")[1]?.trim() || fullText;
+    // The model's decoder strips special tokens like <|im_start|>, so we split by "assistant\n"
+    let responseText = fullText;
+    if (responseText.includes("<|im_start|>assistant\n")) {
+       responseText = responseText.split("<|im_start|>assistant\n").pop();
+    } else if (responseText.includes("\nassistant\n")) {
+       responseText = responseText.split("\nassistant\n").pop();
+    }
     
-    return responseText;
+    return responseText.trim();
   } catch (err) {
     console.error("Generative Inference Error:", err);
     return "I ran out of memory or encountered an error while typing. Sorry!";
