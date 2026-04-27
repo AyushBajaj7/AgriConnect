@@ -1,25 +1,14 @@
 /**
- * File: chatService.js
- * Description: Frontend chat service. Sends user messages and conversation
- *              history to the AgriConnect Express backend, which calls the
- *              Gemini API server-side (API key never exposed to browser).
- *
- * Architecture:
- *   Browser (React) → POST /api/chat → backend/server.js
- *                                    → backend/routes/chat.js
- *                                    → backend/services/geminiService.js
- *                                    → Google Gemini API
- *
- * Used in: components/Chatbot/Chatbot.js
+ * Frontend chat service for the AgriConnect backend.
+ * Sends user questions to the backend API and returns the generated reply.
  */
 
-/** Backend base URL — set REACT_APP_BACKEND_URL in .env for production */
+/** Backend base URL - set REACT_APP_BACKEND_URL in .env for production */
 const BACKEND_URL =
   (process.env.REACT_APP_BACKEND_URL ?? "http://localhost:5000") + "/api/chat";
 
 /**
  * Sends a user message to the backend and returns the AI response text.
- * The backend handles Gemini API calls using the @google/generative-ai SDK.
  *
  * @param {{ role: 'user'|'model', text: string }[]} history - Prior messages
  * @param {string} userMessage - The new user message
@@ -46,7 +35,7 @@ export async function sendChatMessage(history, userMessage) {
     if (!res.ok) {
       console.error("Backend error:", res.status, data);
       if (res.status === 429) {
-        return "⏳ AgriBot is busy. Please wait 30 seconds and try again.";
+        return "AgriBot is busy. Please wait 30 seconds and try again.";
       }
       if (res.status === 400) {
         return "Please type a message before sending.";
@@ -54,21 +43,19 @@ export async function sendChatMessage(history, userMessage) {
       return data.error ?? `Error ${res.status}. Please try again.`;
     }
 
-    return (
-      data.response ?? "I didn't receive a proper response. Please rephrase."
-    );
+    return data.response ?? "I didn't receive a proper response. Please rephrase.";
   } catch (error) {
     clearTimeout(timeoutId);
     console.error("chatService fetch error:", error);
 
     if (error.name === "AbortError") {
-      return "⏱️ Request timed out. Please try again.";
+      return "Request timed out. Please try again.";
     }
     if (
       error.message?.includes("Failed to fetch") ||
       error.message?.includes("NetworkError")
     ) {
-      return "🔌 Cannot connect to AgriBot server. Make sure the backend is running on port 5000.";
+      return "AgriBot is unavailable right now. Check the backend deployment or REACT_APP_BACKEND_URL configuration.";
     }
     return "Network error. Please check your connection.";
   }
@@ -81,5 +68,5 @@ export const SUGGESTED_QUESTIONS = [
   "How to improve soil fertility naturally?",
   "When should I irrigate wheat?",
   "How to get crop insurance under PMFBY?",
-  "Tractor rent vs buy — which is better?",
+  "Tractor rent vs buy - which is better?",
 ];

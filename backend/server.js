@@ -18,11 +18,27 @@ const { initML } = require("./services/mlService");
 
 const app = express();
 const PORT = process.env.PORT ?? 5000;
+const configuredOrigins = (process.env.FRONTEND_ORIGIN ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowedOrigins = new Set([
+  "http://localhost:3000",
+  "http://localhost:3003",
+  ...configuredOrigins,
+]);
 
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3003"],
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     methods: ["POST", "GET"],
   }),
 );
