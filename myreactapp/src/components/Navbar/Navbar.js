@@ -1,16 +1,14 @@
 /**
  * File: Navbar.js
- * Description: Fixed top navigation bar. Shows a logout button and the
- *              authenticated username when a session is active, or a
- *              Sign In link when not authenticated.
+ * Description: Fixed top navigation bar for authenticated application routes.
  * State:
  *   isMenuOpen {boolean} — mobile hamburger menu visibility
  * Used in: App.js (AppLayout)
  */
 
 import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { isLoggedIn, getAuthUser, logout } from "../../services/authService";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 const NAV_LINKS = [
@@ -24,6 +22,7 @@ const NAV_LINKS = [
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { authUser, signOut } = useAuth();
 
   const closeMenu = () => setIsMenuOpen(false);
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
@@ -31,32 +30,27 @@ function Navbar() {
   const getNavLinkClass = ({ isActive }) =>
     isActive ? "nav-link active" : "nav-link";
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
+    closeMenu();
     navigate("/login", { replace: true });
   };
-
-  const authUser = getAuthUser();
-  const userIsLoggedIn = isLoggedIn();
 
   return (
     <nav className="navbar" role="navigation" aria-label="Main navigation">
       <div className="navbar-inner">
-        {/* Brand */}
-        <div
+        <Link
           className="navbar-brand"
-          onClick={() => navigate("/dashboard")}
-          role="link"
-          tabIndex={0}
+          to="/dashboard"
           aria-label="AgriConnect home"
+          onClick={closeMenu}
         >
           <div className="brand-icon" aria-hidden="true">
-            🌾
+            AG
           </div>
           <span className="brand-name">AgriConnect</span>
-        </div>
+        </Link>
 
-        {/* Desktop nav links */}
         <ul className={`navbar-links${isMenuOpen ? " open" : ""}`}>
           {NAV_LINKS.map(({ to, label }) => (
             <li key={to}>
@@ -65,30 +59,20 @@ function Navbar() {
               </NavLink>
             </li>
           ))}
+          <li className="navbar-mobile-action">
+            <button className="nav-link nav-link-button" onClick={handleLogout}>
+              Sign out
+            </button>
+          </li>
         </ul>
 
-        {/* Right side — user info + logout OR sign-in */}
         <div className="navbar-right">
-          {userIsLoggedIn ? (
-            <>
-              <span className="navbar-username">
-                👤 {authUser?.username ?? "User"}
-              </span>
-              <button
-                className="btn-logout"
-                onClick={handleLogout}
-                aria-label="Sign out"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <button className="nav-link" onClick={() => navigate("/login")}>
-              Sign In
-            </button>
-          )}
-
-          {/* Hamburger */}
+          <span className="navbar-username">
+            {authUser?.username ?? "Authenticated user"}
+          </span>
+          <button className="btn-logout" onClick={handleLogout}>
+            Sign out
+          </button>
           <button
             className="hamburger"
             onClick={toggleMenu}

@@ -1,6 +1,6 @@
 # AgriConnect
 
-AgriConnect is a full-stack agriculture web app with a React frontend and a separate Node/Express backend. The frontend provides dashboards, crop prices, weather, schemes, tools, and a floating chatbot UI. The backend handles chat requests with a local `@xenova/transformers` model.
+AgriConnect is a full-stack agriculture web app with a React frontend and a separate Node/Express backend. The frontend provides a dashboard, crop prices, weather analysis, scheme references, tools, and a floating chatbot UI. The backend handles secure session auth and Gemini-backed chat responses.
 
 ## Repo structure
 
@@ -40,18 +40,27 @@ The frontend runs on `http://localhost:3000`.
 
 ```bash
 REACT_APP_BACKEND_URL=https://your-backend-domain.example
+REACT_APP_OPENWEATHER_API_KEY=your_openweather_api_key
 ```
 
 If this variable is not set, the frontend defaults to `http://localhost:5000`.
+
+The weather page expects an OpenWeather API key. Crop prices will fall back to
+curated reference data when the Agmarknet API is unavailable.
 
 ### Backend: `backend/.env`
 
 ```bash
 PORT=5000
 FRONTEND_ORIGIN=https://your-frontend-domain.example
+GEMINI_API_KEY=your_gemini_api_key
+ADMIN_USERNAME=your_admin_username
+ADMIN_PASSWORD_HASH=your_bcrypt_hash
+SESSION_SECRET=long_random_secret
 ```
 
 `FRONTEND_ORIGIN` can be a comma-separated list of allowed frontend origins.
+For cross-site deployments, set secure cookie options if needed.
 
 ## Vercel deployment
 
@@ -71,12 +80,12 @@ npm run build
 
 ## Backend hosting note
 
-The backend is not a good fit for a Vercel serverless function in its current form because it loads a local transformer model into memory at startup. Host it as a long-running Node service instead, then point the frontend at it with `REACT_APP_BACKEND_URL`.
+The backend should run on a long-lived Node host because it manages session cookies and the chatbot provider integration. Point the frontend at it with `REACT_APP_BACKEND_URL`.
 
 ## Production checklist
 
 1. Deploy the frontend from `NewAgri/` on Vercel
 2. Deploy the backend on a long-running Node host
-3. Set `REACT_APP_BACKEND_URL` in the frontend deployment
-4. Set `FRONTEND_ORIGIN` in the backend deployment
-5. Verify `/login`, `/dashboard`, and chatbot connectivity after deploy
+3. Set `REACT_APP_BACKEND_URL` and `REACT_APP_OPENWEATHER_API_KEY` in the frontend deployment
+4. Set `FRONTEND_ORIGIN`, `GEMINI_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `SESSION_SECRET` in the backend deployment
+5. Verify `/dashboard`, `/weather`, `/crop-prices`, and chatbot connectivity after deploy

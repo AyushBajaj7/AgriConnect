@@ -55,7 +55,13 @@ function GovernmentSchemes() {
         schemes. Ongoing schemes are listed first.
       </p>
 
-      {/* Status filter tabs */}
+      <div className="info-banner">
+        <div className="info-banner-title">Why isn't this data real-time?</div>
+        <div className="info-banner-text">
+          Currently, there is no unified central API provided by the government to track all state and central agricultural schemes in real-time. This is a curated reference directory. Scheme budgets, deadlines, and eligibility rules change over time, so please confirm the latest details on official portals.
+        </div>
+      </div>
+
       <div className="schemes-status-tabs">
         {SCHEME_STATUSES.map((status) => (
           <button
@@ -69,14 +75,16 @@ function GovernmentSchemes() {
         ))}
       </div>
 
-      {/* Search */}
       <div className="schemes-search-bar">
         <input
           type="text"
-          placeholder="🔍 Search by scheme name or ministry…"
+          id="scheme-search"
+          name="scheme-search"
+          placeholder="Search by scheme name or ministry"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           aria-label="Search government schemes"
+          autoComplete="off"
         />
       </div>
 

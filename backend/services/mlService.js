@@ -1,70 +1,104 @@
-/**
- * File: services/mlService.js
- * Description: True Generative AI using Hugging Face Transformers.
- *              Downloads and runs a small, optimized LLM (Qwen 0.5B Chat) locally.
- */
+const GEMINI_MODEL = "gemini-2.5-flash-lite";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const REQUEST_TIMEOUT_MS = 15000;
 
-let generator = null;
+function getModelStatus() {
+  const configured = Boolean(process.env.GEMINI_API_KEY);
+  return configured
+    ? {
+        state: "ready",
+        provider: GEMINI_MODEL,
+        message: "Gemini API is configured.",
+      }
+    : {
+        state: "error",
+        provider: GEMINI_MODEL,
+        message: "GEMINI_API_KEY is missing from the backend environment.",
+      };
+}
 
-/**
- * Initializes the generative ML model by dynamically importing `@xenova/transformers`.
- * (Dynamic import ensures we don't block process initialization with large WASM loads).
- */
-async function initML() {
-  console.log("🧠 Initializing Local Generative AI (Qwen1.5-0.5B)...");
-  
-  try {
-    const { pipeline, env } = await import("@xenova/transformers");
-    
-    // We don't want local caching issues since we delete old caches frequently
-    env.allowLocalModels = true;
-    
-    // Download and load model (Takes a few seconds/minutes the first time)
-    generator = await pipeline("text-generation", "Xenova/Qwen1.5-0.5B-Chat", {
-      quantized: true,
-    });
-    console.log("✅ Generative Model Loaded into CPU Memory!");
-  } catch (err) {
-    console.error("❌ Failed to initialize generative pipeline:", err);
+function initML() {
+  const status = getModelStatus();
+  if (status.state !== "ready") {
+    console.warn(status.message);
   }
 }
 
-/**
- * Asynchronous inference: generates a brand new sentence by predicting tokens.
- * @param {string} query 
- * @returns {Promise<string>} 
- */
+function extractText(payload) {
+  const parts = payload?.candidates?.[0]?.content?.parts ?? [];
+  return parts
+    .map((part) => part.text ?? "")
+    .join("")
+    .trim();
+}
+
 async function getResponse(query) {
-  if (!generator) return "Still downloading or loading the 500MB AI model into memory. Please wait a moment and try again.";
+  const apiKey = process.env.GEMINI_API_KEY;
 
-  // Format prompt using Qwen Chat Template
-  const prompt = `<|im_start|>system\nYou are AgriBot, an intelligent and extremely helpful agricultural assistant. Answer questions clearly but keep your responses under 3 sentences to save CPU cycles.<|im_end|>\n<|im_start|>user\n${query}<|im_end|>\n<|im_start|>assistant\n`;
+  if (!apiKey) {
+    const error = new Error("Gemini API key is missing.");
+    error.code = "MODEL_ERROR";
+    throw error;
+  }
 
-  console.log(`[GenerativeAI] Thinking... Query: "${query}"`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const output = await generator(prompt, {
-      max_new_tokens: 100, // Keep short so CPU doesn't hang forever
-      temperature: 0.7,
-      do_sample: true,
-      repetition_penalty: 1.1
+    const response = await fetch(GEMINI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are AgriBot, a practical agricultural assistant. Answer in clear plain text, keep the answer concise, and stay focused on farming and agricultural operations.\n\nUser question: ${query}`,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.35,
+          topP: 0.85,
+          maxOutputTokens: 256,
+        },
+      }),
     });
 
-    let fullText = output[0].generated_text;
-    
-    // The model's decoder strips special tokens like <|im_start|>, so we split by "assistant\n"
-    let responseText = fullText;
-    if (responseText.includes("<|im_start|>assistant\n")) {
-       responseText = responseText.split("<|im_start|>assistant\n").pop();
-    } else if (responseText.includes("\nassistant\n")) {
-       responseText = responseText.split("\nassistant\n").pop();
+    if (!response.ok) {
+      const error = new Error(await response.text());
+      error.code =
+        response.status === 429
+          ? "MODEL_RATE_LIMIT"
+          : response.status === 401 || response.status === 403
+            ? "MODEL_ERROR"
+            : "MODEL_UPSTREAM";
+      throw error;
     }
-    
-    return responseText.trim();
-  } catch (err) {
-    console.error("Generative Inference Error:", err);
-    return "I ran out of memory or encountered an error while typing. Sorry!";
+
+    const payload = await response.json();
+    const text = extractText(payload);
+
+    if (!text) {
+      const error = new Error("Gemini API returned no answer text.");
+      error.code = "MODEL_UPSTREAM";
+      throw error;
+    }
+
+    return text;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      error.code = "MODEL_TIMEOUT";
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
-module.exports = { initML, getResponse };
+module.exports = { initML, getModelStatus, getResponse };

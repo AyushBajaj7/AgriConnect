@@ -6,6 +6,7 @@
 
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh; /* dynamic viewport height for mobile */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,7 +38,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: clamp(1.5rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.5rem);
-  animation: fadeInUp 0.5s ease both;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
   position: relative;
   z-index: 1;
   min-width: 0;
@@ -49,8 +50,17 @@
 }
 
 .login-icon {
-  font-size: clamp(2rem, 5vw, 2.8rem);
-  display: block;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 12px;
 }
 
@@ -71,6 +81,17 @@
   display: flex;
   flex-direction: column;
   gap: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.login-security-note {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(26, 122, 74, 0.24);
+  border-radius: var(--radius);
+  background: rgba(26, 122, 74, 0.08);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .form-group {
@@ -102,15 +123,17 @@
   padding: clamp(0.75rem, 2vw, 0.875rem);
   font-size: clamp(0.9rem, 1.5vw, 1rem);
   margin-top: 4px;
+  min-height: 44px; /* Touch target */
 }
 
-.login-hint {
-  margin-top: clamp(1rem, 2.5vw, 1.5rem);
-  text-align: center;
-  font-size: clamp(0.75rem, 1.2vw, 0.82rem);
-  color: var(--text-muted);
-}
+/* ── Mobile ── */
+@media (max-width: 30em) {
+  .login-card {
+    padding: 1.5rem 1.125rem;
+    border-radius: 16px;
+  }
 
-.login-hint strong {
-  color: var(--text-secondary);
+  .login-security-note {
+    font-size: 0.78rem;
+  }
 }

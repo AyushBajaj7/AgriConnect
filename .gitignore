@@ -14,6 +14,7 @@ yarn-error.log
 build/
 dist/
 myreactapp/build/
+output/
 
 # IDE and OS
 .vscode/

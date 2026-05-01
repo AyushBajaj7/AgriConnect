@@ -14,14 +14,16 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
+  const { signIn, registerUser } = useAuth();
 
   /** Sync form field changes and clear any existing error. */
   const handleChange = (e) => {
@@ -30,15 +32,19 @@ function Login() {
     setError("");
   };
 
-  /** Submit the form — calls authService and navigates or displays error. */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const result = login(form.username, form.password);
+    let result;
+    if (isRegistering) {
+      result = await registerUser(form.username, form.password);
+    } else {
+      result = await signIn(form.username, form.password);
+    }
 
     if (result.success) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } else {
       setError(result.message);
       setLoading(false);
@@ -52,9 +58,18 @@ function Login() {
 
       <div className="login-card">
         <div className="login-header">
-          <span className="login-icon">🌾</span>
+          <span className="login-icon">AG</span>
           <h1 className="login-title">AgriConnect</h1>
-          <p className="login-subtitle">Sign in to your farmer portal</p>
+          <p className="login-subtitle">
+            {isRegistering 
+              ? "Create a new account to access the platform."
+              : "Sign in to access the operational dashboard and AI assistant."}
+          </p>
+        </div>
+
+        <div className="login-security-note">
+          Session access is handled server-side with secure cookies. Configure
+          the administrator credentials on the backend before deployment.
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
@@ -97,14 +112,23 @@ function Login() {
             className="btn-primary login-btn"
             disabled={loading}
           >
-            {loading ? "Signing in…" : "Sign In"}
+            {loading ? (isRegistering ? "Registering..." : "Signing in...") : (isRegistering ? "Register" : "Sign in")}
           </button>
         </form>
 
-        <p className="login-hint">
-          Demo credentials: <strong>admin</strong> /{" "}
-          <strong>password123</strong>
-        </p>
+        <div className="login-toggle">
+          {isRegistering ? "Already have an account? " : "Don't have an account? "}
+          <button 
+            type="button" 
+            className="btn-link"
+            onClick={() => {
+              setIsRegistering(!isRegistering);
+              setError("");
+            }}
+          >
+            {isRegistering ? "Sign in here" : "Register here"}
+          </button>
+        </div>
       </div>
     </div>
   );

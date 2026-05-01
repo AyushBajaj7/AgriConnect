@@ -3,18 +3,20 @@
  * Sends user questions to the backend API and returns the generated reply.
  */
 
-/** Backend base URL - set REACT_APP_BACKEND_URL in .env for production */
-const BACKEND_URL =
-  (process.env.REACT_APP_BACKEND_URL ?? "http://localhost:5000") + "/api/chat";
+const DEFAULT_BACKEND_ORIGIN =
+  typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
+    : "http://localhost:5000";
+
+const BACKEND_URL = `${(process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN).replace(/\/+$/, "")}/api/chat`;
 
 /**
  * Sends a user message to the backend and returns the AI response text.
  *
- * @param {{ role: 'user'|'model', text: string }[]} history - Prior messages
  * @param {string} userMessage - The new user message
  * @returns {Promise<string>} The AI response text
  */
-export async function sendChatMessage(history, userMessage) {
+export async function sendChatMessage(userMessage) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000);
 
@@ -22,6 +24,7 @@ export async function sendChatMessage(history, userMessage) {
     const res = await fetch(BACKEND_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         message: userMessage,
       }),
@@ -39,6 +42,24 @@ export async function sendChatMessage(history, userMessage) {
       }
       if (res.status === 400) {
         return "Please type a message before sending.";
+      }
+      if (res.status === 401) {
+        return "Your session has expired. Please sign in again.";
+      }
+      if (res.status === 503) {
+        return (
+          data.error ??
+          "AgriBot is starting up. Please wait a moment and try again."
+        );
+      }
+      if (res.status === 504) {
+        return "AgriBot took too long to respond. Please try again.";
+      }
+      if (res.status >= 500) {
+        return (
+          data.error ??
+          "AgriBot could not respond right now. Please try again shortly."
+        );
       }
       return data.error ?? `Error ${res.status}. Please try again.`;
     }

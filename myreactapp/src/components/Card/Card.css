@@ -2,23 +2,34 @@
  * Card.css
  * Generic card component styles. The .clickable modifier adds hover
  * lift and border highlight for interactive cards on the Dashboard.
+ * 
+ * GPU-accelerated transforms for smooth, jitter-free hover effects.
  */
 
 .card-component {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: clamp(1rem, 2.5vw, 1.75rem);
-  transition: all 0.3s ease;
-  animation: fadeInUp 0.4s ease both;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s ease,
+              border-color 0.3s ease,
+              background-color 0.3s ease;
+  will-change: transform;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
   min-width: 0;
   overflow: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* prevent children stretching full-width */
+  height: 100%; /* ensures equal height in grid */
 }
 
 .card-component.clickable {
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .card-component.clickable:hover {
@@ -28,18 +39,38 @@
   transform: translateY(-4px);
 }
 
+.card-component.clickable:active {
+  transform: translateY(-1px);
+}
+
+.card-component.clickable:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
 .card-icon {
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  margin-bottom: clamp(0.75rem, 1.5vw, 1rem);
+  font-size: clamp(1.75rem, 3vw, 2.2rem);
+  margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
+  line-height: 1;
+}
+
+/* Badge must be inline pill, NOT full-width bar */
+.card-component > .badge {
+  display: inline-flex;
+  align-self: flex-start;
+  width: auto;
+  max-width: max-content;
+  margin-bottom: 6px;
 }
 
 .card-title {
   font-family: "Outfit", sans-serif;
-  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   word-break: break-word;
+  align-self: stretch; /* title can stretch */
 }
 
 .card-value {
@@ -50,9 +81,22 @@
 }
 
 .card-subtitle {
-  font-size: clamp(0.78rem, 1.2vw, 0.85rem);
+  font-size: clamp(0.8rem, 1.2vw, 0.88rem);
   color: var(--text-muted);
-  line-height: 1.5;
-  margin-top: 8px;
+  line-height: 1.55;
+  margin-top: auto; /* push subtitle to bottom for equal-height cards */
   word-break: break-word;
+  align-self: stretch;
+}
+
+/* ── Mobile ── */
+@media (max-width: 30em) {
+  .card-component {
+    padding: 1.125rem;
+  }
+
+  .card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
 }

@@ -1,136 +1,138 @@
-/**
- * File: Chatbot.js
- * Description: Floating AI chatbot backed by the AgriConnect Express backend.
- *              The backend retrieves relevant knowledge (RAG) then calls Gemini
- *              2.0 Flash to generate context-aware agricultural responses.
- * State:
- *   isOpen     — chat window visibility
- *   messages   — array of { id, role, text, timestamp }
- *   inputText  — controlled textarea value
- *   isTyping   — shows typing indicator while awaiting response
- * Used in: App.js (AppLayout)
- */
-
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  sendChatMessage,
   SUGGESTED_QUESTIONS,
+  sendChatMessage,
 } from "../../services/chatService";
 import "./Chatbot.css";
 
-/** Generates a guaranteed-unique message ID that survives hot-reloads. */
-const makeId = () => crypto.randomUUID();
+function createMessageId() {
+  if (typeof window !== "undefined" && window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
 
-const WELCOME_MSG = {
-  id: makeId(),
-  role: "model",
-  text: "🌾 Namaste! I'm **AgriBot**, your agricultural assistant.\n\nI can help you with crop advice, government schemes, market prices, weather impact, farming tools, and much more. What would you like to know?",
-  timestamp: new Date(),
-};
+  return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
-/** Converts **bold** markdown to <strong> for simple inline rendering. */
+function createWelcomeMessage() {
+  return {
+    id: createMessageId(),
+    role: "model",
+    text: "AgriBot is ready. Ask about crop planning, government schemes, market prices, weather impact, or farm equipment.",
+    timestamp: new Date(),
+  };
+}
+
 function renderText(text) {
   const parts = text.split(/\*\*(.*?)\*\*/g);
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part,
+  return parts.map((part, index) =>
+    index % 2 === 1 ? <strong key={index}>{part}</strong> : part,
   );
 }
 
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([WELCOME_MSG]);
+  const [messages, setMessages] = useState(() => [createWelcomeMessage()]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  // Ref-based guard prevents two rapid sends from both slipping past the
-  // isTyping state check before React flushes the state update.
   const isTypingRef = useRef(false);
 
-  // Scroll to latest message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Focus input when chat opens
   useEffect(() => {
-    if (isOpen) setTimeout(() => inputRef.current?.focus(), 150);
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => inputRef.current?.focus(), 150);
+    return () => window.clearTimeout(timeoutId);
   }, [isOpen]);
 
-  const sendMessage = useCallback(
-    async (text) => {
-      const trimmed = text.trim();
-      // Use ref as the primary gate — immune to stale closure
-      if (!trimmed || isTypingRef.current) return;
+  const sendMessage = useCallback(async (text) => {
+    const trimmed = text.trim();
+    if (!trimmed || isTypingRef.current) {
+      return;
+    }
 
-      isTypingRef.current = true;
-      setIsTyping(true);
+    isTypingRef.current = true;
+    setIsTyping(true);
 
-      const userMsg = {
-        id: makeId(),
-        role: "user",
-        text: trimmed,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMsg]);
-      setInputText("");
+    const userMessage = {
+      id: createMessageId(),
+      role: "user",
+      text: trimmed,
+      timestamp: new Date(),
+    };
 
-      // Build history (exclude welcome msg, last 20 messages)
-      const history = messages
-        .filter((m) => m.id !== WELCOME_MSG.id)
-        .slice(-20)
-        .map((m) => ({ role: m.role, text: m.text }));
+    setMessages((previousMessages) => [...previousMessages, userMessage]);
+    setInputText("");
 
-      const reply = await sendChatMessage(history, trimmed);
-
-      const botMsg = {
-        id: makeId(),
+    try {
+      const reply = await sendChatMessage(trimmed);
+      const modelMessage = {
+        id: createMessageId(),
         role: "model",
         text: reply,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMsg]);
+
+      setMessages((previousMessages) => [...previousMessages, modelMessage]);
+    } catch {
+      const fallbackMessage = {
+        id: createMessageId(),
+        role: "model",
+        text: "AgriBot could not respond right now. Please try again.",
+        timestamp: new Date(),
+      };
+
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        fallbackMessage,
+      ]);
+    } finally {
       isTypingRef.current = false;
       setIsTyping(false);
-    },
-    [messages],
-  );
+    }
+  }, []);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       sendMessage(inputText);
     }
   };
 
   const formatTime = (date) =>
-    date?.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) ??
-    "";
+    date?.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }) ?? "";
 
-  const showSuggestions = messages.length <= 1;
+  const showSuggestions = messages.length === 1;
 
   return (
     <>
-      {/* Floating trigger button */}
       <button
         className={`chatbot-trigger${isOpen ? " open" : ""}`}
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => setIsOpen((previousValue) => !previousValue)}
         aria-label={isOpen ? "Close chat" : "Open AgriBot chat"}
         aria-expanded={isOpen}
       >
-        {isOpen ? "✕" : "💬"}
+        {isOpen ? "x" : "AI"}
       </button>
 
       {isOpen && (
         <div className="chatbot-window" role="dialog" aria-label="AgriBot chat">
-          {/* Header */}
           <div className="chatbot-header">
             <div className="chatbot-header-brand">
-              <span>🌾</span>
+              <span className="chatbot-brand-badge">✨</span>
               <div>
                 <div className="chatbot-name">AgriBot</div>
                 <div className="chatbot-status">
-                  ● Online · Powered by Local AI
+                  Powered by Gemini AI
                 </div>
               </div>
             </div>
@@ -139,42 +141,39 @@ function Chatbot() {
               onClick={() => setIsOpen(false)}
               aria-label="Close"
             >
-              ✕
+              x
             </button>
           </div>
 
-          {/* Messages */}
           <div className="chatbot-messages">
-            {messages.map((msg) => (
+            {messages.map((message) => (
               <div
-                key={msg.id}
-                className={`chatbot-bubble chatbot-bubble-${msg.role}`}
+                key={message.id}
+                className={`chatbot-bubble chatbot-bubble-${message.role}`}
               >
-                {msg.role === "model" && (
-                  <div className="chatbot-avatar">🌾</div>
+                {message.role === "model" && (
+                  <div className="chatbot-avatar">AI</div>
                 )}
                 <div className="chatbot-bubble-inner">
                   <div className="chatbot-bubble-text">
-                    {/* Pre-split once to avoid calling split() twice per line */}
-                    {msg.text.split("\n").map((line, i, arr) => (
-                      <React.Fragment key={i}>
+                    {message.text.split("\n").map((line, index, lines) => (
+                      <React.Fragment key={index}>
                         {renderText(line)}
-                        {i < arr.length - 1 && <br />}
+                        {index < lines.length - 1 && <br />}
                       </React.Fragment>
                     ))}
                   </div>
                   <div className="chatbot-bubble-time">
-                    {formatTime(msg.timestamp)}
+                    {formatTime(message.timestamp)}
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Typing indicator */}
             {isTyping && (
               <div className="chatbot-bubble chatbot-bubble-model">
-                <div className="chatbot-avatar">🌾</div>
-                <div className="chatbot-typing">
+                <div className="chatbot-avatar">AI</div>
+                <div className="chatbot-typing" aria-label="AgriBot is typing">
                   <span />
                   <span />
                   <span />
@@ -182,16 +181,15 @@ function Chatbot() {
               </div>
             )}
 
-            {/* Suggested questions (shown only at start) */}
             {showSuggestions && !isTyping && (
               <div className="chatbot-suggestions">
-                {SUGGESTED_QUESTIONS.map((q) => (
+                {SUGGESTED_QUESTIONS.map((question) => (
                   <button
-                    key={q}
+                    key={question}
                     className="chatbot-suggestion-chip"
-                    onClick={() => sendMessage(q)}
+                    onClick={() => sendMessage(question)}
                   >
-                    {q}
+                    {question}
                   </button>
                 ))}
               </div>
@@ -200,14 +198,15 @@ function Chatbot() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input area */}
           <div className="chatbot-input-area">
             <textarea
               ref={inputRef}
               className="chatbot-input"
+              id="chatbot-input"
+              name="chatbot-input"
               placeholder="Ask about crops, schemes, prices…"
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={(event) => setInputText(event.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
               disabled={isTyping}
@@ -219,7 +218,7 @@ function Chatbot() {
               disabled={!inputText.trim() || isTyping}
               aria-label="Send message"
             >
-              ➤
+              >
             </button>
           </div>
         </div>

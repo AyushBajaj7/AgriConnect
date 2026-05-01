@@ -1,41 +1,77 @@
 /**
  * File: routes/chat.js
- * Description: POST /api/chat — custom NLP chat pipeline.
+ * Description: POST /api/chat - authenticated Gemini-backed chat endpoint.
  *
- *   1. Validate input (message string)
- *   2. Classify and reply via local ML model
+ *   1. Validate input
+ *   2. Enforce auth and request pacing
+ *   3. Generate a reply through the configured AI provider
  */
 
 const express = require("express");
-const router = express.Router();
-const { getResponse } = require("../services/mlService");
+const rateLimit = require("express-rate-limit");
+const { requireAuth } = require("../middleware/requireAuth");
+const { getModelStatus, getResponse } = require("../services/mlService");
 
-/**
- * POST /api/chat
- * Body: { message: string, history?: Array }
- * Response: { response: string }
- */
-router.post("/chat", async (req, res) => {
-  const { message } = req.body;
+const router = express.Router();
+
+const chatLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "AgriBot is busy right now. Please wait a moment and try again.",
+  },
+});
+
+router.post("/chat", requireAuth, chatLimiter, async (request, response) => {
+  const { message } = request.body ?? {};
 
   if (!message || typeof message !== "string" || !message.trim()) {
-    return res.status(400).json({ error: "Message is required" });
+    return response.status(400).json({ error: "Message is required." });
   }
+
   if (message.length > 500) {
-    return res
+    return response
       .status(400)
-      .json({ error: "Message too long (max 500 characters)" });
+      .json({ error: "Message too long. Use 500 characters or fewer." });
   }
 
   const query = message.trim();
 
   try {
-    // Inference via local Generative AI
     const reply = await getResponse(query);
-    return res.status(200).json({ response: reply });
+    return response.status(200).json({ response: reply });
   } catch (error) {
-    console.error("[/api/chat] NLP Error:", error);
-    return res.status(500).json({ error: "Failed to classify phrase." });
+    const modelStatus = getModelStatus();
+    console.error("[/api/chat] AI provider error:", error);
+
+    if (error.code === "MODEL_ERROR") {
+      return response.status(503).json({
+        error:
+          "AgriBot is unavailable because the AI provider is not configured correctly.",
+        modelStatus,
+      });
+    }
+
+    if (error.code === "MODEL_RATE_LIMIT") {
+      return response.status(429).json({
+        error: "AgriBot is busy right now. Please wait a moment and try again.",
+        modelStatus,
+      });
+    }
+
+    if (error.code === "MODEL_TIMEOUT") {
+      return response.status(504).json({
+        error: "AgriBot took too long to respond. Please try again.",
+        modelStatus,
+      });
+    }
+
+    return response.status(500).json({
+      error: "AgriBot could not generate a reply right now.",
+      modelStatus,
+    });
   }
 });
 

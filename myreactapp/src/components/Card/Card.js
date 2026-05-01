@@ -21,11 +21,19 @@ import "./Card.css";
 
 function Card({ icon, title, value, subtitle, badge, onClick, children }) {
   const isClickable = typeof onClick === "function";
+  const handleKeyDown = (event) => {
+    if (!isClickable) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
+  };
 
   return (
     <div
       className={`card-component${isClickable ? " clickable" : ""}`}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
     >

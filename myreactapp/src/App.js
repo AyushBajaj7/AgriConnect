@@ -1,39 +1,68 @@
 /**
  * File: App.js
- * Description: Root component defining client-side routing.
- *              ProtectedRoute redirects unauthenticated users to /login.
+ * Description: Root component defining authenticated and guest routes.
  * Used in: index.js
  */
 
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import { isLoggedIn } from "./services/authService";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
-import Chatbot from "./components/Chatbot/Chatbot";
+import Loader from "./components/Loader/Loader";
 
-import Login from "./pages/Login/Login";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import GovernmentSchemes from "./pages/GovernmentSchemes/GovernmentSchemes";
-import SchemeDetails from "./pages/SchemeDetails/SchemeDetails";
-import CropPrices from "./pages/CropPrices/CropPrices";
-import FarmingTools from "./pages/FarmingTools/FarmingTools";
-import Weather from "./pages/Weather/Weather";
+const Chatbot = lazy(() => import("./components/Chatbot/Chatbot"));
+const Login = lazy(() => import("./pages/Login/Login"));
+const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
+const GovernmentSchemes = lazy(
+  () => import("./pages/GovernmentSchemes/GovernmentSchemes"),
+);
+const SchemeDetails = lazy(
+  () => import("./pages/SchemeDetails/SchemeDetails"),
+);
+const CropPrices = lazy(() => import("./pages/CropPrices/CropPrices"));
+const FarmingTools = lazy(() => import("./pages/FarmingTools/FarmingTools"));
+const Weather = lazy(() => import("./pages/Weather/Weather"));
 
-/**
- * Route guard — redirects to /login if not authenticated.
- * Wraps every protected page in AppLayout.
- */
+function PageFallback({ text }) {
+  return (
+    <div className="page-container">
+      <Loader text={text} />
+    </div>
+  );
+}
+
 function ProtectedRoute({ children }) {
-  if (!isLoggedIn()) {
+  const { authLoading, isAuthenticated } = useAuth();
+
+  if (authLoading) {
+    return <PageFallback text="Checking session..." />;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  return children;
+}
+
+function GuestRoute({ children }) {
+  const { authLoading, isAuthenticated } = useAuth();
+
+  if (authLoading) {
+    return <PageFallback text="Loading sign-in..." />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 }
 
@@ -42,38 +71,59 @@ function AppLayout() {
     <>
       <Navbar />
       <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/schemes" element={<GovernmentSchemes />} />
-          <Route path="/scheme/:id" element={<SchemeDetails />} />
-          <Route path="/crop-prices" element={<CropPrices />} />
-          <Route path="/tools" element={<FarmingTools />} />
-          <Route path="/weather" element={<Weather />} />
-        </Routes>
+        <Suspense fallback={<PageFallback text="Loading page..." />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/schemes" element={<GovernmentSchemes />} />
+            <Route path="/scheme/:id" element={<SchemeDetails />} />
+            <Route path="/crop-prices" element={<CropPrices />} />
+            <Route path="/tools" element={<FarmingTools />} />
+            <Route path="/weather" element={<Weather />} />
+          </Routes>
+        </Suspense>
       </main>
       <Footer />
-      <Chatbot />
+      <Suspense fallback={null}>
+        <Chatbot />
+      </Suspense>
     </>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <Suspense fallback={<PageFallback text="Loading AgriConnect..." />}>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <Login />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Suspense>
   );
 }
 
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <div className="app-container">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </div>
+      <AuthProvider>
+        <div className="app-container">
+          <AppRoutes />
+        </div>
+      </AuthProvider>
     </Router>
   );
 }

@@ -44,6 +44,11 @@ function formatTime(date) {
 
 function CropPrices() {
   const [prices, setPrices] = useState([]);
+  const [feedMeta, setFeedMeta] = useState({
+    source: "reference",
+    label: "Reference data",
+    warning: "",
+  });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -54,7 +59,8 @@ function CropPrices() {
   const loadPrices = useCallback(async () => {
     setLoading(true);
     const data = await fetchMandiPrices();
-    setPrices(data);
+    setPrices(data.records);
+    setFeedMeta(data.meta);
     setLastUpdated(new Date());
     setCountdown(REFRESH_INTERVAL_MS / 1000);
     setLoading(false);
@@ -100,18 +106,23 @@ function CropPrices() {
     <div className="page-container">
       <div className="prices-header">
         <div>
-          <h1 className="page-title">📊 Market Prices</h1>
+          <h1 className="page-title">Market Prices</h1>
           <p className="page-subtitle">
-            Compare daily modal prices across different mandis to find the best
-            rate.
+            Compare mandi pricing by crop, market, and distance. When the live
+            source is unavailable, the page falls back to curated reference
+            values instead of guessing.
           </p>
         </div>
         <div className="prices-refresh-info">
-          <span className="prices-live-badge">🟢 Live</span>
+          <span
+            className={`prices-live-badge prices-live-badge-${feedMeta.source}`}
+          >
+            {feedMeta.label}
+          </span>
           <span className="prices-updated">
             Updated: {formatTime(lastUpdated)}
           </span>
-          <span className="prices-countdown">Refreshing in {countdown}s</span>
+          <span className="prices-countdown">Retrying in {countdown}s</span>
           <button
             className="btn-secondary prices-refresh-btn"
             onClick={loadPrices}
@@ -120,6 +131,13 @@ function CropPrices() {
           </button>
         </div>
       </div>
+
+      {feedMeta.warning && (
+        <div className="info-banner">
+          <div className="info-banner-title">Fallback mode</div>
+          <div className="info-banner-text">{feedMeta.warning}</div>
+        </div>
+      )}
 
       {/* Category tabs */}
       <div className="prices-category-tabs">
@@ -139,12 +157,17 @@ function CropPrices() {
         <input
           className="prices-search"
           type="text"
-          placeholder="🔍 Search crops, mandis, states…"
+          id="crop-search"
+          name="crop-search"
+          placeholder="Search crops, mandis, and states"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          autoComplete="off"
         />
         <select
           className="prices-sort"
+          id="crop-sort"
+          name="crop-sort"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -206,7 +229,7 @@ function CropPrices() {
                       {TREND_ICONS[item.trend]}
                     </span>
                     <span className="prices-modal-value">
-                      ₹ {item.modalPrice.toLocaleString("en-IN")}
+                      ₹{item.modalPrice.toLocaleString("en-IN")}
                     </span>
                   </td>
                   <td>

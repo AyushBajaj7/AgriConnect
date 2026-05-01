@@ -10,8 +10,9 @@
  * API Reference: https://openweathermap.org/api
  */
 
-/** @see https://openweathermap.org — replace with an env variable in production. */
-const API_KEY = "6a173adde35f78487a42908af69bdf1d";
+const API_KEY =
+  process.env.REACT_APP_OPENWEATHER_API_KEY ??
+  "6a173adde35f78487a42908af69bdf1d";
 
 const WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
 
@@ -23,14 +24,20 @@ const WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
  * @returns {Promise<object>}
  */
 async function apiFetch(url) {
+  if (!API_KEY) {
+    return { error: "Weather service is not configured." };
+  }
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
 
     if (!response.ok) {
       const message =
-        response.status === 404
-          ? "City not found. Please check the spelling."
-          : `API error ${response.status}. Please try again.`;
+        response.status === 401
+          ? "Weather service credentials are invalid."
+          : response.status === 404
+            ? "City not found. Please check the spelling."
+            : `API error ${response.status}. Please try again.`;
       return { error: message };
     }
 
@@ -100,7 +107,6 @@ export function fetchForecastByCoords(lat, lon) {
  * @returns {Promise<object>} Air Pollution API response, or `{ error }`.
  */
 export function fetchAirQuality(lat, lon) {
-  // Uses http (not https) as required by the free-tier Air Pollution endpoint.
-  const url = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+  const url = `${WEATHER_BASE_URL}/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
   return apiFetch(url);
 }

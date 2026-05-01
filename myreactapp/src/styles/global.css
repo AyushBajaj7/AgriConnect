@@ -4,6 +4,9 @@
  *              fluid grid helpers, button variants, badge styles, and
  *              global animations used across the entire AgriConnect app.
  *              All page-specific styles live in their own component CSS file.
+ *
+ * Performance: Uses will-change and transform3d for GPU compositing.
+ *              Prefers reduced-motion is respected.
  */
 
 /* ── RESET & BOX MODEL ── */
@@ -46,6 +49,8 @@
 html {
   height: 100%;
   -webkit-text-size-adjust: 100%; /* prevent iOS font inflation */
+  scroll-behavior: smooth;
+  color-scheme: dark; /* Force native dropdowns/scrollbars to dark mode */
 }
 
 body {
@@ -54,9 +59,23 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── TYPOGRAPHY (fluid) ── */
@@ -137,16 +156,22 @@ svg {
   border-radius: var(--radius);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s ease;
+  will-change: transform;
   box-shadow: 0 4px 16px rgba(26, 122, 74, 0.35);
   white-space: nowrap;
   min-width: 0;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(26, 122, 74, 0.5);
+}
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -163,15 +188,39 @@ svg {
   border-radius: var(--radius);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.2s ease;
+  will-change: transform;
   white-space: nowrap;
   min-width: 0;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-secondary:hover {
   background: rgba(26, 122, 74, 0.12);
   transform: translateY(-2px);
+}
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary-light);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-link:hover {
+  color: #4fd184;
 }
 
 /* ── CARD ── */
@@ -180,7 +229,11 @@ svg {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: clamp(1rem, 2.5vw, 1.75rem);
-  transition: all 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s ease,
+              border-color 0.3s ease,
+              background-color 0.3s ease;
+  will-change: transform;
   min-width: 0;
   overflow: hidden;
 }
@@ -262,6 +315,7 @@ input[type="email"] {
   transition:
     border-color 0.25s ease,
     box-shadow 0.25s ease;
+  -webkit-appearance: none;
 }
 
 input[type="text"]:focus,
@@ -275,6 +329,16 @@ input::placeholder {
   color: var(--text-muted);
 }
 
+/* Mobile input sizing — prevent iOS zoom */
+@media (max-width: 30em) {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"] {
+    font-size: 16px;
+    padding: 0.75rem 1rem;
+  }
+}
+
 /* ── DIVIDER ── */
 .divider {
   height: 1px;
@@ -282,15 +346,52 @@ input::placeholder {
   margin: clamp(1.25rem, 3vw, 2rem) 0;
 }
 
+.info-banner {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+  padding: clamp(0.9rem, 2vw, 1.1rem) clamp(1rem, 2.5vw, 1.25rem);
+  border: 1px solid rgba(245, 166, 35, 0.22);
+  border-radius: var(--radius);
+  background: rgba(245, 166, 35, 0.08);
+}
+
+.info-banner-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f7c566;
+}
+
+.info-banner-text {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* ── Login toggle ── */
+.login-toggle {
+  text-align: center;
+  margin-top: clamp(1rem, 2vw, 1.5rem);
+  font-size: clamp(0.82rem, 1.2vw, 0.9rem);
+  color: var(--text-muted);
+}
+
+/* ── No results ── */
+.no-results {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translate3d(0, 24px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -301,7 +402,7 @@ input::placeholder {
 }
 
 .animate-fade-in {
-  animation: fadeInUp 0.5s ease both;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 /* ── UTILITY ── */
@@ -309,4 +410,15 @@ input::placeholder {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── GLOBAL RESPONSIVE HELPERS ── */
+@media (max-width: 30em) {
+  .page-title {
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
+  }
+
+  .page-subtitle {
+    font-size: clamp(0.82rem, 3vw, 0.95rem);
+  }
 }
