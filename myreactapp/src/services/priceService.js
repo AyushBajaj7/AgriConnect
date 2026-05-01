@@ -873,17 +873,7 @@ const STATIC_PRICES = [
   },
 ];
 
-function applyStaticMetadata(prices) {
-  return prices.map((p) => {
-    const id = p.id || makePriceId(p);
-    return {
-      ...p,
-      id,
-      trend: getTrend(id, p.modalPrice),
-      source: "reference",
-    };
-  });
-}
+
 
 /**
  * Fetches mandi prices and annotates whether the response is live or fallback.
