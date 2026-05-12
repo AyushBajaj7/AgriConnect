@@ -342,6 +342,7 @@
   font-family: inherit;
   min-width: 0;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .chatbot-input:focus {
@@ -519,7 +520,7 @@
     /* Prevent iOS zoom on focus */
     font-size: 16px;
     line-height: 1.3;
-    max-height: 44px;
+    max-height: 120px;
     min-height: 40px;
   }
 

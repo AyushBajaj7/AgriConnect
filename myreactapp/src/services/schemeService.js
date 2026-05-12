@@ -12,6 +12,13 @@
  * @type {Record<string, number>}
  */
 const STATUS_ORDER = { ongoing: 0, upcoming: 1, completed: 2 };
+const DEFAULT_BACKEND_ORIGIN =
+  typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
+    : "http://localhost:5000";
+const API_BASE_URL = (
+  process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN
+).replace(/\/+$/, "");
 
 const SCHEMES_RAW = [
   // ── ONGOING ──────────────────────────────────────────────────────────────────
@@ -409,9 +416,22 @@ const SCHEMES_RAW = [
 ];
 
 // Sort: ongoing → upcoming → completed, then by id within each group
-const SCHEMES = [...SCHEMES_RAW].sort(
-  (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.id - b.id,
-);
+function makeSchemeSourceUrl(title) {
+  return `https://www.myscheme.gov.in/search?keyword=${encodeURIComponent(title)}`;
+}
+
+const SCHEMES = [...SCHEMES_RAW]
+  .map((scheme) => ({
+    ...scheme,
+    sourceName: scheme.sourceName ?? "myScheme government portal",
+    sourceUrl: scheme.sourceUrl ?? makeSchemeSourceUrl(scheme.title),
+    lastReviewed: scheme.lastReviewed ?? "2026-05-04",
+    reviewStatus: scheme.reviewStatus ?? "Review link before applying",
+    coverageType: scheme.coverageType ?? "Agriculture support",
+  }))
+  .sort(
+    (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.id - b.id,
+  );
 
 export function getAllSchemes() {
   return SCHEMES;
@@ -433,6 +453,31 @@ export function searchSchemes(query) {
 export function getSchemesByStatus(status) {
   if (status === "all") return SCHEMES;
   return SCHEMES.filter((s) => s.status === status);
+}
+
+export async function fetchSchemeReviewLog() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/schemes/review-log`, {
+      credentials: "include",
+      signal: AbortSignal.timeout(15000),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error ?? "Scheme review refresh failed.");
+    }
+
+    return {
+      ok: true,
+      log: data,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error.message,
+      log: null,
+    };
+  }
 }
 
 export const SCHEME_STATUSES = ["all", "ongoing", "upcoming", "completed"];

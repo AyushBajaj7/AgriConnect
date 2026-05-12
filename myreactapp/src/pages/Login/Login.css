@@ -13,22 +13,8 @@
   background: var(--bg-dark);
   padding: clamp(1rem, 4vw, 2rem);
   position: relative;
-  overflow: hidden;
-}
-
-.login-glow {
-  position: absolute;
-  width: min(600px, 100vw);
-  height: min(600px, 100vw);
-  background: radial-gradient(
-    circle,
-    rgba(26, 122, 74, 0.15) 0%,
-    transparent 70%
-  );
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .login-card {
@@ -105,6 +91,16 @@
   font-size: clamp(0.78rem, 1.2vw, 0.85rem);
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+.form-help {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.form-help-error {
+  color: #f87171;
 }
 
 .login-error {

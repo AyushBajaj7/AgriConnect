@@ -129,7 +129,7 @@ svg {
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
   word-break: break-word;
 }
 
@@ -296,6 +296,14 @@ svg {
 .badge-blue {
   background: rgba(59, 130, 246, 0.2);
   color: #60a5fa;
+}
+.badge-teal {
+  background: rgba(20, 184, 166, 0.16);
+  color: #5eead4;
+}
+.badge-slate {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
 }
 
 /* ── INPUTS ── */

@@ -1,85 +1,90 @@
-/**
- * File: Dashboard.js
- * Description: Landing page after login. Displays a welcome hero section,
- *              a four-stat summary bar (symmetrical grid), and a 2×2 grid
- *              of quick-access feature cards with live data indicators.
- *
- * Props: none
- * Used in: App.js (route /dashboard)
- */
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../components/Card/Card";
 import { useAuth } from "../../context/AuthContext";
+import { fetchMandiPrices } from "../../services/priceService";
 import "./Dashboard.css";
 
-/**
- * Feature cards displayed in the quick-access grid.
- * Each card links to a primary feature page.
- */
+const DEFAULT_BACKEND_ORIGIN =
+  typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
+    : "http://localhost:5000";
+
+const API_BASE_URL = (
+  process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN
+).replace(/\/+$/, "");
+
 const FEATURE_CARDS = [
   {
-    icon: "📋",
-    title: "Government Schemes",
+    icon: "Schemes",
+    title: "Government schemes",
     subtitle:
-      "Browse 35+ central and state agriculture schemes with eligibility details, budgets, and direct links to official portals.",
-    badge: { label: "35 Schemes", color: "blue" },
+      "Find reviewed central and state agriculture schemes with eligibility, deadlines, and official source guidance.",
+    badge: { label: "Reviewed directory", color: "blue" },
     path: "/schemes",
-    liveKey: "schemes",
   },
   {
-    icon: "📊",
-    title: "Crop Prices",
+    icon: "Prices",
+    title: "Market prices",
     subtitle:
-      "Live mandi pricing feed with auto-refresh every 5 minutes. Compare prices across markets, crops, and regions.",
-    badge: { label: "Live Feed", color: "green" },
+      "Check mandi prices. Live data is shown only when the source is working; otherwise the page clearly marks stale or reference data.",
+    badge: { label: "Truth-labeled data", color: "teal" },
     path: "/crop-prices",
-    liveKey: "prices",
   },
   {
-    icon: "🚜",
-    title: "Farming Tools",
+    icon: "Tools",
+    title: "Farming tools",
     subtitle:
-      "Browse tractors, harvesters, irrigation systems, drones and more with specifications and price ranges.",
-    badge: { label: "Equipment", color: "gold" },
+      "Compare tractors, harvesters, irrigation equipment, drones, and other farm tools with practical buying and rental notes.",
+    badge: { label: "Equipment guide", color: "gold" },
     path: "/tools",
-    liveKey: "tools",
   },
   {
-    icon: "🌦️",
-    title: "Weather Report",
+    icon: "Weather",
+    title: "Weather updates",
     subtitle:
-      "Real-time weather forecasts, air quality analysis, and crop risk assessment for smart field planning.",
-    badge: { label: "Live Weather", color: "green" },
+      "Review weather and air-quality information before irrigation, spraying, harvesting, or field travel.",
+    badge: { label: "Planning support", color: "slate" },
     path: "/weather",
-    liveKey: "weather",
   },
 ];
+
+function getGreeting(date) {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+async function fetchPriceStatus() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/prices/status`);
+    if (!response.ok) throw new Error("Price status unavailable");
+    return response.json();
+  } catch {
+    const fallback = await fetchMandiPrices();
+    return {
+      state: fallback.meta?.source ?? "reference",
+      message: fallback.meta?.warning ?? "Showing reference price data.",
+      lastSuccessAt: fallback.meta?.fetchedAt ?? null,
+    };
+  }
+}
 
 function Dashboard() {
   const navigate = useNavigate();
   const { authUser } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [greeting, setGreeting] = useState("");
+  const [priceStatus, setPriceStatus] = useState(null);
 
-  // Live clock for a real-time feel
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Dynamic greeting based on time of day
-  const getGreeting = useCallback(() => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    return "Good Evening";
-  }, [currentTime]);
-
   useEffect(() => {
-    setGreeting(getGreeting());
-  }, [getGreeting]);
+    fetchPriceStatus().then(setPriceStatus);
+  }, []);
 
   const formattedDate = currentTime.toLocaleDateString("en-IN", {
     weekday: "long",
@@ -88,78 +93,99 @@ function Dashboard() {
     day: "numeric",
   });
 
-  const formattedTime = currentTime.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   const userName = authUser?.username
     ? authUser.username.charAt(0).toUpperCase() + authUser.username.slice(1)
     : "Farmer";
 
+  const priceLabel = useMemo(() => {
+    if (!priceStatus) return "Checking";
+    if (priceStatus.state === "live") return "Live";
+    if (priceStatus.state === "cached") return "Saved live";
+    if (priceStatus.state === "stale") return "Stale";
+    if (priceStatus.state === "reference" || priceStatus.state === "unavailable") {
+      return "Reference";
+    }
+    return "Checking";
+  }, [priceStatus]);
+
+  const stats = [
+    {
+      label: "Government schemes",
+      value: "35",
+      note: "Reviewed entries",
+      path: "/schemes",
+    },
+    {
+      label: "Market price feed",
+      value: priceLabel,
+      note: "Live status",
+      path: "/crop-prices",
+    },
+    {
+      label: "Farming tool guides",
+      value: "7+",
+      note: "Equipment categories",
+      path: "/tools",
+    },
+    {
+      label: "Weather updates",
+      value: "Ready",
+      note: "Planning support",
+      path: "/weather",
+    },
+  ];
+
   return (
     <div className="page-container">
-      {/* ── Hero / welcome banner ── */}
-      <div className="dashboard-hero animate-fade-in">
+      <section className="dashboard-hero animate-fade-in">
         <div className="dashboard-hero-content">
-          <div className="dashboard-hero-greeting">
-            <span className="hero-wave" aria-hidden="true">👋</span>
-            <h1 className="page-title">
-              {greeting}, {userName}
-            </h1>
-          </div>
+          <h1 className="page-title">
+            {getGreeting(currentTime)}, {userName}
+          </h1>
           <p className="page-subtitle">
-            Your one-stop platform for weather intelligence, mandi pricing,
-            government schemes, and farm equipment guidance.
+            Use AgriConnect to check scheme guidance, mandi price status,
+            weather conditions, and farming tools from one place.
           </p>
           <div className="dashboard-hero-meta">
-            <span className="hero-date">📅 {formattedDate}</span>
-            <span className="hero-time">🕐 {formattedTime}</span>
+            <span className="hero-date">{formattedDate}</span>
+            <span className="hero-time">
+              {currentTime.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
         </div>
         <div className="dashboard-hero-actions">
-          <button className="btn-primary" onClick={() => navigate("/weather")}>
-            🌦️ Check Weather
+          <button type="button" className="btn-primary" onClick={() => navigate("/crop-prices")}>
+            Check market prices
           </button>
-          <button
-            className="btn-secondary"
-            onClick={() => navigate("/crop-prices")}
-          >
-            📊 View Prices
+          <button type="button" className="btn-secondary" onClick={() => navigate("/schemes")}>
+            View government schemes
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* ── Quick stats bar (4 symmetrical items) ── */}
-      <div className="dashboard-stats animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        <div className="stat-card" onClick={() => navigate("/schemes")} role="button" tabIndex={0}>
-          <span className="stat-icon">📋</span>
-          <p className="stat-value">35</p>
-          <p className="stat-label">Government Schemes</p>
-        </div>
-        <div className="stat-card" onClick={() => navigate("/crop-prices")} role="button" tabIndex={0}>
-          <span className="stat-icon">📊</span>
-          <p className="stat-value">5</p>
-          <p className="stat-label">Price Categories</p>
-        </div>
-        <div className="stat-card" onClick={() => navigate("/tools")} role="button" tabIndex={0}>
-          <span className="stat-icon">🚜</span>
-          <p className="stat-value">7+</p>
-          <p className="stat-label">Farming Tools</p>
-        </div>
-        <div className="stat-card" onClick={() => navigate("/weather")} role="button" tabIndex={0}>
-          <span className="stat-icon">🌦️</span>
-          <p className="stat-value">Live</p>
-          <p className="stat-label">Weather Data</p>
-        </div>
-      </div>
+      <section className="dashboard-stats animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        {stats.map((stat) => (
+          <button
+            key={stat.label}
+            className="stat-card"
+            type="button"
+            onClick={() => navigate(stat.path)}
+          >
+            <span className="stat-label">{stat.label}</span>
+            <span className="stat-value">{stat.value}</span>
+            <span className="stat-note">{stat.note}</span>
+          </button>
+        ))}
+      </section>
 
       <div className="divider" />
 
-      {/* ── Quick-access feature cards (2×2 symmetrical grid) ── */}
-      <h2 className="section-heading">Explore Features</h2>
+      <h2 className="section-heading">Main services</h2>
       <div className="dashboard-grid">
-        {FEATURE_CARDS.map((card, index) => (
+        {FEATURE_CARDS.map((card) => (
           <Card
             key={card.path}
             icon={card.icon}

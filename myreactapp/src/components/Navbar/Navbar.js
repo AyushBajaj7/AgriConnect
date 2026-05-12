@@ -60,7 +60,7 @@ function Navbar() {
             </li>
           ))}
           <li className="navbar-mobile-action">
-            <button className="nav-link nav-link-button" onClick={handleLogout}>
+            <button type="button" className="nav-link nav-link-button" onClick={handleLogout}>
               Sign out
             </button>
           </li>
@@ -70,10 +70,11 @@ function Navbar() {
           <span className="navbar-username">
             {authUser?.username ?? "Authenticated user"}
           </span>
-          <button className="btn-logout" onClick={handleLogout}>
+          <button type="button" className="btn-logout" onClick={handleLogout}>
             Sign out
           </button>
           <button
+            type="button"
             className="hamburger"
             onClick={toggleMenu}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}

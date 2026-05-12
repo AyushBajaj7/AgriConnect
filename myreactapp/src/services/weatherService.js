@@ -15,6 +15,7 @@ const API_KEY =
   "6a173adde35f78487a42908af69bdf1d";
 
 const WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
+const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
 /**
  * Shared fetch wrapper. Returns parsed JSON or a normalised error object.
@@ -109,4 +110,37 @@ export function fetchForecastByCoords(lat, lon) {
 export function fetchAirQuality(lat, lon) {
   const url = `${WEATHER_BASE_URL}/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
   return apiFetch(url);
+}
+
+/**
+ * Fetches recent hourly precipitation and short-term temperature/rain forecast.
+ * OpenWeather current weather may omit rain after it stops, so this supplements
+ * the page with recent hourly rainfall history without needing another API key.
+ *
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {Promise<object>}
+ */
+export async function fetchRecentPrecipitation(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    hourly: "precipitation,temperature_2m",
+    past_hours: "24",
+    forecast_hours: "48",
+    timezone: "auto",
+    precipitation_unit: "mm",
+  });
+
+  try {
+    const response = await fetch(`${OPEN_METEO_FORECAST_URL}?${params}`, {
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) {
+      return { error: `Rainfall history API error ${response.status}.` };
+    }
+    return await response.json();
+  } catch {
+    return { error: "Rainfall history is unavailable." };
+  }
 }

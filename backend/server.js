@@ -4,10 +4,14 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
+const { createFirewall } = require("./middleware/firewall");
 const authRoutes = require("./routes/auth");
 const chatRoutes = require("./routes/chat");
+const priceRoutes = require("./routes/prices");
+const schemeRoutes = require("./routes/schemes");
 const { getAuthStatus } = require("./services/authService");
 const { initML, getModelStatus } = require("./services/mlService");
+const { getPriceStatus } = require("./services/priceService");
 
 const app = express();
 const PORT = process.env.PORT ?? 5000;
@@ -17,11 +21,31 @@ const configuredOrigins = (process.env.FRONTEND_ORIGIN ?? "")
   .filter(Boolean);
 const allowedOrigins = new Set([
   "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
   "http://localhost:3003",
   "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+  "http://127.0.0.1:3002",
   "http://127.0.0.1:3003",
   ...configuredOrigins,
 ]);
+
+function isLocalDevelopmentOrigin(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return (
+      (protocol === "http:" || protocol === "https:") &&
+      (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1")
+    );
+  } catch {
+    return false;
+  }
+}
 
 app.disable("x-powered-by");
 app.use(
@@ -32,7 +56,7 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (!origin || allowedOrigins.has(origin) || isLocalDevelopmentOrigin(origin)) {
         callback(null, true);
         return;
       }
@@ -44,25 +68,13 @@ app.use(
   }),
 );
 app.use(cookieParser());
+app.use(createFirewall());
 app.use(express.json({ limit: "10kb" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api", chatRoutes);
-
-// Proxy for Agmarknet price API (avoids CORS in browser)
-app.get("/api/prices", async (_req, res) => {
-  const AGMARKNET_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aeb08d72d1860f33d1";
-  const AGMARKNET_URL = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070";
-  try {
-    const apiUrl = `${AGMARKNET_URL}?api-key=${AGMARKNET_KEY}&format=json&limit=80`;
-    const response = await fetch(apiUrl, { signal: AbortSignal.timeout(10000) });
-    if (!response.ok) throw new Error(`API returned ${response.status}`);
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(502).json({ error: "Upstream API unavailable", message: err.message });
-  }
-});
+app.use("/api", priceRoutes);
+app.use("/api", schemeRoutes);
 
 app.get("/health", (_request, response) => {
   const ai = getModelStatus();
@@ -73,6 +85,7 @@ app.get("/health", (_request, response) => {
     service: "AgriConnect Backend",
     auth: getAuthStatus(),
     ai,
+    prices: getPriceStatus(),
   });
 });
 
@@ -80,11 +93,25 @@ function startServer() {
   try {
     initML();
 
-    return app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`AgriConnect backend running on http://localhost:${PORT}`);
       console.log(`POST http://localhost:${PORT}/api/chat`);
       console.log(`POST http://localhost:${PORT}/api/auth/login`);
     });
+
+    server.on("error", (error) => {
+      if (error?.code === "EADDRINUSE") {
+        console.error(
+          `Port ${PORT} is already in use. Another AgriConnect backend instance is already running on http://localhost:${PORT}.`,
+        );
+        process.exit(1);
+      }
+
+      console.error("Failed to start server:", error);
+      process.exit(1);
+    });
+
+    return server;
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

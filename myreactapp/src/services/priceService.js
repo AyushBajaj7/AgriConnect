@@ -1,13 +1,20 @@
 /**
  * File: priceService.js
- * Description: Fetches live mandi prices from the Agmarknet API (data.gov.in).
- *              Falls back to a curated static dataset when the API is unavailable.
+ * Description: Fetches mandi prices through the backend. Falls back to
+ *              clearly labeled curated reference data when live data is unavailable.
  * Used in: pages/CropPrices/CropPrices.js
  */
 
-const AGMARKNET_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aeb08d72d1860f33d1";
-const AGMARKNET_URL =
-  "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070";
+const DEFAULT_BACKEND_ORIGIN =
+  typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
+    : "http://localhost:5000";
+
+const API_BASE_URL = (
+  process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN
+).replace(/\/+$/, "");
+const REFERENCE_CACHE_KEY = "agriconnect.referencePrices.v1";
+const PRICE_REQUEST_TIMEOUT_MS = 35000;
 
 /** Maps commodity keywords to display categories. */
 const CATEGORY_KEYWORDS = {
@@ -24,7 +31,6 @@ const CATEGORY_KEYWORDS = {
     "toor",
     "moong",
     "arhar",
-    "chilli",
     "turmeric",
     "ginger",
     "tea",
@@ -47,6 +53,26 @@ const CATEGORY_KEYWORDS = {
     "carrot",
     "pumpkin",
     "cucumber",
+    "gourd",
+    "snakeguard",
+    "snake gourd",
+    "snake guard",
+    "parval",
+    "pointed gourd",
+    "bitter gourd",
+    "bottle gourd",
+    "ridge gourd",
+    "okra",
+    "bhindi",
+    "beans",
+    "bean",
+    "chilli",
+    "chili",
+    "spinach",
+    "coriander",
+    "radish",
+    "turnip",
+    "beetroot",
   ],
   fruits: [
     "mango",
@@ -58,6 +84,13 @@ const CATEGORY_KEYWORDS = {
     "coconut",
     "pomegranate",
     "papaya",
+    "guava",
+    "pineapple",
+    "watermelon",
+    "muskmelon",
+    "lemon",
+    "lime",
+    "jackfruit",
   ],
   seeds: [
     "groundnut",
@@ -69,111 +102,60 @@ const CATEGORY_KEYWORDS = {
     "paddy seed",
     "maize seed",
   ],
-  fertilizers: ["urea", "dap", "mop", "ssp", "npk", "compost"],
+  fertilizers: [
+    "fertilizer",
+    "fertiliser",
+    "urea",
+    "dap",
+    "mop",
+    "ssp",
+    "npk",
+    "compost",
+    "manure",
+    "potash",
+  ],
 };
 
-function categorize(commodity = "") {
-  const lower = commodity.toLowerCase();
-  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some((k) => lower.includes(k))) return cat;
-  }
-  return "crops";
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Approximate road distances (km) from Delhi to major mandi cities. */
-const MANDI_DISTANCES = {
-  delhi: 12,
-  azadpur: 12,
-  gurugram: 30,
-  faridabad: 35,
-  noida: 25,
-  karnal: 130,
-  ambala: 200,
-  hisar: 170,
-  panipat: 90,
-  rohtak: 70,
-  ludhiana: 300,
-  amritsar: 450,
-  jalandhar: 370,
-  patiala: 260,
-  jaipur: 280,
-  jodhpur: 600,
-  bikaner: 450,
-  kota: 475,
-  agra: 200,
-  lucknow: 550,
-  varanasi: 820,
-  kanpur: 480,
-  allahabad: 640,
-  indore: 780,
-  bhopal: 700,
-  gwalior: 320,
-  ujjain: 750,
-  mumbai: 1400,
-  pune: 1510,
-  nasik: 1600,
-  nagpur: 1100,
-  latur: 1600,
-  aurangabad: 1270,
-  amravati: 1200,
-  ahmedabad: 950,
-  rajkot: 1100,
-  surat: 1200,
-  baroda: 1020,
-  hyderabad: 1560,
-  guntur: 1800,
-  kurnool: 1700,
-  warangal: 1500,
-  bangalore: 2100,
-  kolar: 2150,
-  davangere: 2300,
-  mysore: 2280,
-  chennai: 2200,
-  coimbatore: 2300,
-  madurai: 2450,
-  koyambedu: 2200,
-  kolkata: 1500,
-  siliguri: 1700,
-  howrah: 1490,
-  patna: 1000,
-  muzaffarpur: 1100,
-  gaya: 1050,
-  bhubaneswar: 1700,
-  cuttack: 1720,
-  guwahati: 1950,
-  silchar: 2200,
-  shimla: 350,
-  kullu: 450,
-  dharamshala: 490,
-  dehradun: 300,
-  haridwar: 220,
-  rishikesh: 240,
-  raipur: 1100,
-  bilaspur: 1200,
-  ranchi: 1300,
-  jamshedpur: 1500,
-  kochi: 2500,
-  calicut: 2450,
-  thiruvananthapuram: 2700,
-  chandigarh: 250,
-};
+function normalizeCategoryText(value = "") {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-function getDistance(market = "") {
-  const lower = market.toLowerCase();
-  for (const [city, dist] of Object.entries(MANDI_DISTANCES)) {
-    if (lower.includes(city)) return dist;
+function hasKeyword(normalizedCommodity, keyword) {
+  const normalizedKeyword = normalizeCategoryText(keyword);
+
+  if (!normalizedKeyword) {
+    return false;
   }
-  return Math.floor(Math.random() * 900 + 100);
+
+  return new RegExp(`(^| )${escapeRegExp(normalizedKeyword)}( |$)`).test(
+    normalizedCommodity,
+  );
+}
+
+function categorize(commodity = "") {
+  const normalized = normalizeCategoryText(commodity);
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some((keyword) => hasKeyword(normalized, keyword))) return cat;
+  }
+  return "crops";
 }
 
 const priceHistory = {};
 
 function makePriceId(record) {
   return [
-    record.state,
-    record.market,
-    record.commodity,
-    record.variety || "local",
+    record.State || record.state,
+    record.Market || record.market,
+    record.Commodity || record.commodity,
+    record.Variety || record.variety || "local",
   ]
     .join("_")
     .toLowerCase()
@@ -191,22 +173,57 @@ function getTrend(id, currentPrice) {
 }
 
 function normalizeApiRecord(record, index) {
-  const modal = parseInt(record.modal_price, 10) || 0;
+  const modal = parseInt(record.Modal_Price || record.modal_price, 10) || 0;
+  const market = record.Market || record.market || "";
+  const commodity = record.Commodity || record.commodity || "";
   const id = makePriceId(record) || `api_${index}`;
   return {
     id,
-    market: record.market,
-    state: record.state,
-    commodity: record.commodity,
-    variety: record.variety || "Local",
-    category: categorize(record.commodity),
+    market: market,
+    state: record.State || record.state || "",
+    commodity: commodity,
+    variety: record.Variety || record.variety || "Local",
+    category: categorize(commodity),
     modalPrice: modal,
-    minPrice: parseInt(record.min_price, 10) || 0,
-    maxPrice: parseInt(record.max_price, 10) || 0,
-    distance: getDistance(record.market),
+    minPrice: parseInt(record.Min_Price || record.min_price, 10) || 0,
+    maxPrice: parseInt(record.Max_Price || record.max_price, 10) || 0,
+    distance: null,
     trend: getTrend(id, modal),
     source: "live",
   };
+}
+
+function makeGroupKey(record) {
+  return [record.state, record.market, record.commodity, record.variety]
+    .join("|")
+    .toLowerCase();
+}
+
+function mergePriceRecords(records) {
+  const grouped = new Map();
+
+  for (const record of records) {
+    const key = makeGroupKey(record);
+    const existing = grouped.get(key);
+
+    if (!existing) {
+      grouped.set(key, { ...record, groupCount: 1 });
+      continue;
+    }
+
+    const totalCount = existing.groupCount + 1;
+    grouped.set(key, {
+      ...existing,
+      minPrice: Math.min(existing.minPrice, record.minPrice),
+      maxPrice: Math.max(existing.maxPrice, record.maxPrice),
+      modalPrice: Math.round(
+        (existing.modalPrice * existing.groupCount + record.modalPrice) / totalCount,
+      ),
+      groupCount: totalCount,
+    });
+  }
+
+  return Array.from(grouped.values()).map(({ groupCount, ...record }) => record);
 }
 
 /** Static fallback dataset — 55 items across major mandis. */
@@ -873,59 +890,137 @@ const STATIC_PRICES = [
   },
 ];
 
+function applyStaticMetadata(prices) {
+  return prices.map((price) => ({
+    ...price,
+    id: price.id || makePriceId(price),
+    trend: "stable",
+    source: "reference",
+  }));
+}
+
+function normalizeBackendRecord(record, index) {
+  const market = record.market || record.Market || "";
+  const commodity = record.commodity || record.Commodity || "";
+  const id = record.id || makePriceId(record) || `backend_${index}`;
+
+  return {
+    ...record,
+    id,
+    market,
+    state: record.state || record.State || "",
+    commodity,
+    variety: record.variety || record.Variety || "Local",
+    category: categorize(commodity),
+    modalPrice: Number(record.modalPrice ?? record.Modal_Price) || 0,
+    minPrice: Number(record.minPrice ?? record.Min_Price) || 0,
+    maxPrice: Number(record.maxPrice ?? record.Max_Price) || 0,
+    distance: null,
+    trend: record.trend || "stable",
+    source: record.source || "live",
+  };
+}
+
+function writeReferenceCache(records, meta) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      REFERENCE_CACHE_KEY,
+      JSON.stringify({
+        records,
+        meta: {
+          ...meta,
+          cachedAt: new Date().toISOString(),
+        },
+      }),
+    );
+  } catch {
+    // Browser storage may be disabled; reference prices still render from memory.
+  }
+}
+
+function readReferenceCache() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const cached = JSON.parse(
+      window.localStorage.getItem(REFERENCE_CACHE_KEY) ?? "null",
+    );
+    return Array.isArray(cached?.records) && cached.records.length ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function getFriendlyPriceErrorMessage(error) {
+  if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+    return `AgriConnect took longer than ${Math.round(PRICE_REQUEST_TIMEOUT_MS / 1000)} seconds to fetch live mandi prices. Showing reference prices instead.`;
+  }
+
+  if (typeof error?.message === "string" && error.message.trim()) {
+    return error.message;
+  }
+
+  return "Live mandi prices are unavailable. Showing curated reference prices.";
+}
+
 
 
 /**
- * Fetches mandi prices and annotates whether the response is live or fallback.
+ * Fetches mandi prices and annotates whether the response is live, stale, or reference data.
  * @returns {Promise<{records: Array, meta: {source: string, label: string, warning: string, fetchedAt: string}}>}
  */
 export async function fetchMandiPrices() {
   try {
-    // Try backend proxy first (avoids CORS), then direct API
-    const proxyUrl = `http://localhost:5000/api/prices`;
-    let res;
-    try {
-      res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-    } catch {
-      // Backend proxy not available, try direct (may fail due to CORS)
-      const directUrl = `${AGMARKNET_URL}?api-key=${AGMARKNET_KEY}&format=json&limit=80`;
-      res = await fetch(directUrl, { signal: AbortSignal.timeout(12000) });
-    }
-    if (!res.ok) throw new Error("API response not OK");
-    const data = await res.json();
-    if (!data.records?.length) throw new Error("No records");
-    return {
-      records: data.records.map(normalizeApiRecord),
-      meta: {
-        source: "live",
-        label: "Live API",
-        warning: "",
-        fetchedAt: new Date().toISOString(),
-      },
-    };
-  } catch {
-    // If the API fails or hits rate limits, mock a live feed using reference data
-    const mockedLivePrices = STATIC_PRICES.map(p => {
-      // Simulate random 1-5% price fluctuation
-      const fluctuation = 1 + (Math.random() * 0.1 - 0.05); 
-      const newModal = Math.round(p.modalPrice * fluctuation);
-      return {
-        ...p,
-        id: p.id || makePriceId(p),
-        modalPrice: newModal,
-        trend: newModal > p.modalPrice ? "up" : newModal < p.modalPrice ? "down" : "stable",
-        source: "live"
-      };
+    const res = await fetch(`${API_BASE_URL}/api/prices`, {
+      signal: AbortSignal.timeout(PRICE_REQUEST_TIMEOUT_MS),
     });
+    const data = await res.json();
+
+    if (!res.ok || !data.records?.length) {
+      throw new Error(data?.meta?.warning || "Live mandi source unavailable.");
+    }
 
     return {
-      records: mockedLivePrices,
+      records: mergePriceRecords(
+        data.records.map((record, index) =>
+          record.modalPrice !== undefined
+            ? normalizeBackendRecord(record, index)
+            : normalizeApiRecord(record, index),
+        ),
+      ),
       meta: {
-        source: "live",
-        label: "Live API (Simulated)",
-        warning: "",
-        fetchedAt: new Date().toISOString(),
+        source: data.meta?.source ?? "live",
+        label: data.meta?.label ?? "Live prices",
+        warning: data.meta?.warning ?? "",
+        fetchedAt: data.meta?.fetchedAt ?? new Date().toISOString(),
+        checkedAt: data.meta?.checkedAt ?? new Date().toISOString(),
+        cacheUpdatedAt: data.meta?.cacheUpdatedAt ?? data.meta?.fetchedAt ?? null,
+        nextLiveCheckAt: data.meta?.nextLiveCheckAt ?? null,
+        stale: Boolean(data.meta?.stale),
       },
+    };
+  } catch (error) {
+    const records = applyStaticMetadata(STATIC_PRICES);
+    const meta = {
+      source: "reference",
+      label: "Reference prices",
+      warning: getFriendlyPriceErrorMessage(error),
+      fetchedAt: new Date().toISOString(),
+      checkedAt: new Date().toISOString(),
+      cacheUpdatedAt: new Date().toISOString(),
+      nextLiveCheckAt: null,
+      stale: false,
+    };
+    writeReferenceCache(records, meta);
+    const cachedReference = readReferenceCache();
+
+    return {
+      records: mergePriceRecords(
+        (cachedReference?.records ?? records).map(normalizeBackendRecord),
+      ),
+      meta: cachedReference?.meta ?? meta,
     };
   }
 }

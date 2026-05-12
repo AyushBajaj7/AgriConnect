@@ -13,4 +13,14 @@ function requireAuth(request, response, next) {
   return next();
 }
 
-module.exports = { requireAuth };
+function requireAdmin(request, response, next) {
+  if (request.authUser?.role !== "admin") {
+    return response.status(403).json({
+      error: "Administrator access is required.",
+    });
+  }
+
+  return next();
+}
+
+module.exports = { requireAdmin, requireAuth };

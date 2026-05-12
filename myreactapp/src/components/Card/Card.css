@@ -24,6 +24,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* prevent children stretching full-width */
+  gap: 0.55rem;
   height: 100%; /* ensures equal height in grid */
 }
 
@@ -49,9 +50,14 @@
 }
 
 .card-icon {
-  font-size: clamp(1.75rem, 3vw, 2.2rem);
-  margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
+  background: rgba(26, 122, 74, 0.12);
+  border: 1px solid rgba(79, 209, 132, 0.2);
+  border-radius: 999px;
+  color: var(--primary-light);
+  font-size: 0.78rem;
+  font-weight: 700;
   line-height: 1;
+  padding: 0.38rem 0.6rem;
 }
 
 /* Badge must be inline pill, NOT full-width bar */
@@ -60,7 +66,7 @@
   align-self: flex-start;
   width: auto;
   max-width: max-content;
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 
 .card-title {
@@ -68,7 +74,7 @@
   font-size: clamp(1rem, 1.6vw, 1.15rem);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin: 0;
   word-break: break-word;
   align-self: stretch; /* title can stretch */
 }
@@ -84,7 +90,7 @@
   font-size: clamp(0.8rem, 1.2vw, 0.88rem);
   color: var(--text-muted);
   line-height: 1.55;
-  margin-top: auto; /* push subtitle to bottom for equal-height cards */
+  margin: 0;
   word-break: break-word;
   align-self: stretch;
 }
@@ -96,7 +102,6 @@
   }
 
   .card-icon {
-    font-size: 1.5rem;
     margin-bottom: 0.5rem;
   }
 }

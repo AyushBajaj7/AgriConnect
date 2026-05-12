@@ -6,10 +6,9 @@ import {
 import "./Chatbot.css";
 
 function createMessageId() {
-  if (typeof window !== "undefined" && window.crypto && window.crypto.randomUUID) {
+  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
     return window.crypto.randomUUID();
   }
-
   return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
@@ -17,7 +16,7 @@ function createWelcomeMessage() {
   return {
     id: createMessageId(),
     role: "model",
-    text: "AgriBot is ready. Ask about crop planning, government schemes, market prices, weather impact, or farm equipment.",
+    text: "AgriBot is ready. Ask about crops, schemes, market prices, weather, or farming tools. If the main AI service is unavailable, AgriConnect will use a limited local fallback.",
     timestamp: new Date(),
   };
 }
@@ -43,54 +42,60 @@ function Chatbot() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-
+    if (!isOpen) return undefined;
     const timeoutId = window.setTimeout(() => inputRef.current?.focus(), 150);
     return () => window.clearTimeout(timeoutId);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
+    }
+  }, [inputText]);
+
   const sendMessage = useCallback(async (text) => {
     const trimmed = text.trim();
-    if (!trimmed || isTypingRef.current) {
-      return;
-    }
+    if (!trimmed || isTypingRef.current) return;
 
     isTypingRef.current = true;
     setIsTyping(true);
 
-    const userMessage = {
-      id: createMessageId(),
-      role: "user",
-      text: trimmed,
-      timestamp: new Date(),
-    };
-
-    setMessages((previousMessages) => [...previousMessages, userMessage]);
+    setMessages((previousMessages) => [
+      ...previousMessages,
+      {
+        id: createMessageId(),
+        role: "user",
+        text: trimmed,
+        timestamp: new Date(),
+      },
+    ]);
     setInputText("");
+
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
 
     try {
       const reply = await sendChatMessage(trimmed);
-      const modelMessage = {
-        id: createMessageId(),
-        role: "model",
-        text: reply,
-        timestamp: new Date(),
-      };
-
-      setMessages((previousMessages) => [...previousMessages, modelMessage]);
-    } catch {
-      const fallbackMessage = {
-        id: createMessageId(),
-        role: "model",
-        text: "AgriBot could not respond right now. Please try again.",
-        timestamp: new Date(),
-      };
-
       setMessages((previousMessages) => [
         ...previousMessages,
-        fallbackMessage,
+        {
+          id: createMessageId(),
+          role: "model",
+          text: reply,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch {
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        {
+          id: createMessageId(),
+          role: "model",
+          text: "AgriBot could not respond right now. Please try again.",
+          timestamp: new Date(),
+        },
       ]);
     } finally {
       isTypingRef.current = false;
@@ -116,6 +121,7 @@ function Chatbot() {
   return (
     <>
       <button
+        type="button"
         className={`chatbot-trigger${isOpen ? " open" : ""}`}
         onClick={() => setIsOpen((previousValue) => !previousValue)}
         aria-label={isOpen ? "Close chat" : "Open AgriBot chat"}
@@ -128,15 +134,16 @@ function Chatbot() {
         <div className="chatbot-window" role="dialog" aria-label="AgriBot chat">
           <div className="chatbot-header">
             <div className="chatbot-header-brand">
-              <span className="chatbot-brand-badge">✨</span>
+              <span className="chatbot-brand-badge">AI</span>
               <div>
                 <div className="chatbot-name">AgriBot</div>
                 <div className="chatbot-status">
-                  Powered by Gemini AI
+                  Secure answers through the AgriConnect server
                 </div>
               </div>
             </div>
             <button
+              type="button"
               className="chatbot-close"
               onClick={() => setIsOpen(false)}
               aria-label="Close"
@@ -185,6 +192,7 @@ function Chatbot() {
               <div className="chatbot-suggestions">
                 {SUGGESTED_QUESTIONS.map((question) => (
                   <button
+                    type="button"
                     key={question}
                     className="chatbot-suggestion-chip"
                     onClick={() => sendMessage(question)}
@@ -204,7 +212,7 @@ function Chatbot() {
               className="chatbot-input"
               id="chatbot-input"
               name="chatbot-input"
-              placeholder="Ask about crops, schemes, prices…"
+              placeholder="Ask about crops, schemes, or prices"
               value={inputText}
               onChange={(event) => setInputText(event.target.value)}
               onKeyDown={handleKeyDown}
@@ -213,12 +221,13 @@ function Chatbot() {
               aria-label="Chat input"
             />
             <button
+              type="button"
               className="chatbot-send"
               onClick={() => sendMessage(inputText)}
               disabled={!inputText.trim() || isTyping}
               aria-label="Send message"
             >
-              >
+              &gt;
             </button>
           </div>
         </div>

@@ -18,12 +18,20 @@ import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 function Login() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
   const { signIn, registerUser } = useAuth();
+  const passwordsMismatch =
+    isRegistering &&
+    form.confirmPassword.length > 0 &&
+    form.password !== form.confirmPassword;
 
   /** Sync form field changes and clear any existing error. */
   const handleChange = (e) => {
@@ -34,6 +42,11 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isRegistering && form.password !== form.confirmPassword) {
+      setError("Passwords do not match. Enter the same password twice.");
+      return;
+    }
+
     setLoading(true);
 
     let result;
@@ -53,9 +66,6 @@ function Login() {
 
   return (
     <div className="login-page">
-      {/* Decorative background glow */}
-      <div className="login-glow" />
-
       <div className="login-card">
         <div className="login-header">
           <span className="login-icon">AG</span>
@@ -68,8 +78,8 @@ function Login() {
         </div>
 
         <div className="login-security-note">
-          Session access is handled server-side with secure cookies. Configure
-          the administrator credentials on the backend before deployment.
+          Create an account to save your session and use the dashboard. Your
+          password is protected on the server and is never stored as plain text.
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
@@ -97,9 +107,36 @@ function Login() {
               value={form.password}
               onChange={handleChange}
               required
-              autoComplete="current-password"
+              autoComplete={isRegistering ? "new-password" : "current-password"}
             />
+            {isRegistering && (
+              <p className="form-help">
+                Use at least 8 characters with one letter and one number.
+              </p>
+            )}
           </div>
+
+          {isRegistering && (
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm password</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="Enter the same password again"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                required
+                autoComplete="new-password"
+                aria-invalid={passwordsMismatch}
+              />
+              {passwordsMismatch && (
+                <p className="form-help form-help-error">
+                  Passwords do not match. Enter the same password twice.
+                </p>
+              )}
+            </div>
+          )}
 
           {error && (
             <div className="login-error" role="alert">
@@ -123,6 +160,7 @@ function Login() {
             className="btn-link"
             onClick={() => {
               setIsRegistering(!isRegistering);
+              setForm({ username: "", password: "", confirmPassword: "" });
               setError("");
             }}
           >

@@ -1,40 +1,13 @@
-/**
- * Dashboard.css
- * Styles for the Dashboard page — hero welcome banner, stat summary
- * cards, and the quick-access feature card grid.
- * 
- * Uses CSS Grid for perfect symmetry. GPU-accelerated transitions.
- * Responsive breakpoints: desktop → tablet → mobile.
- */
-
-/* ── Hero Banner ─────────────────────────────────────────────────────── */
 .dashboard-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  background: linear-gradient(
-    135deg,
-    rgba(26, 122, 74, 0.08) 0%,
-    rgba(13, 31, 21, 0.45) 100%
-  );
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(26, 122, 74, 0.08);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
-  position: relative;
-}
-
-.dashboard-hero::before {
-  content: "";
-  position: absolute;
-  top: -40%;
-  right: -15%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(26, 122, 74, 0.08), transparent 70%);
-  pointer-events: none;
 }
 
 .dashboard-hero-content {
@@ -42,38 +15,13 @@
   min-width: 0;
 }
 
-.dashboard-hero-greeting {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.25rem;
-}
-
-.hero-wave {
-  font-size: clamp(1.6rem, 3vw, 2rem);
-  display: inline-block;
-  animation: wave-anim 2.5s ease-in-out infinite;
-  transform-origin: 70% 70%;
-  will-change: transform;
-}
-
-@keyframes wave-anim {
-  0%, 100% { transform: rotate(0deg); }
-  10% { transform: rotate(14deg); }
-  20% { transform: rotate(-8deg); }
-  30% { transform: rotate(14deg); }
-  40% { transform: rotate(-4deg); }
-  50% { transform: rotate(10deg); }
-  60% { transform: rotate(0deg); }
-}
-
 .dashboard-hero .page-title {
-  margin-bottom: 0;
+  margin-bottom: 0.5rem;
 }
 
 .dashboard-hero .page-subtitle {
-  margin-bottom: 0.75rem;
-  margin-top: 0.5rem;
+  margin-bottom: 0.875rem;
+  max-width: 760px;
 }
 
 .dashboard-hero-meta {
@@ -85,9 +33,8 @@
 
 .hero-date,
 .hero-time {
-  font-size: clamp(0.75rem, 1.1vw, 0.85rem);
+  font-size: 0.86rem;
   color: var(--text-muted);
-  white-space: nowrap;
 }
 
 .dashboard-hero-actions {
@@ -97,39 +44,40 @@
   flex-shrink: 0;
 }
 
-/* ── Summary Stats Bar (4-column symmetrical grid) ───────────────────── */
 .dashboard-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(0.625rem, 1.5vw, 1rem);
-  margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .stat-card {
+  min-width: 0;
+  min-height: 128px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: clamp(1rem, 2vw, 1.5rem) clamp(0.75rem, 1.5vw, 1rem);
+  color: inherit;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: clamp(0.25rem, 0.6vw, 0.4rem);
-  cursor: pointer;
-  /* GPU-accelerated transitions for smooth hover */
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.25s ease,
-              box-shadow 0.25s ease,
-              background-color 0.25s ease;
-  will-change: transform;
-  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1.1rem;
+  text-align: left;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
-  border-color: rgba(26, 122, 74, 0.5);
+  border-color: rgba(79, 209, 132, 0.45);
   background: var(--bg-card-hover);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
 }
 
 .stat-card:focus-visible {
@@ -137,107 +85,82 @@
   outline-offset: 2px;
 }
 
-.stat-icon {
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
-  line-height: 1;
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+  text-transform: none;
 }
 
 .stat-value {
-  font-family: "Outfit", sans-serif;
-  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
-  font-weight: 700;
   color: var(--primary-light);
-  line-height: 1.1;
-}
-
-.stat-label {
-  font-size: clamp(0.65rem, 0.9vw, 0.78rem);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  word-break: break-word;
-  line-height: 1.3;
-}
-
-/* ── Section heading ─────────────────────────────────────────────────── */
-.section-heading {
   font-family: "Outfit", sans-serif;
-  font-size: clamp(0.85rem, 1.5vw, 1.05rem);
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
-/* ── Feature Cards Grid (2×2 symmetrical) ────────────────────────────── */
+.stat-note {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.section-heading {
+  color: var(--text-secondary);
+  font-family: "Outfit", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 1rem;
+}
+
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(0.75rem, 2vw, 1.25rem);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
-   ═══════════════════════════════════════════════════════════════════════ */
+.dashboard-grid .card-component {
+  min-height: 245px;
+  justify-content: flex-start;
+}
 
-/* Tablet (≤ 56em / 896px) */
 @media (max-width: 56em) {
   .dashboard-hero {
-    flex-direction: column;
     align-items: stretch;
-    text-align: center;
-  }
-
-  .dashboard-hero-greeting {
-    justify-content: center;
-  }
-
-  .dashboard-hero .page-subtitle {
-    max-width: none;
-  }
-
-  .dashboard-hero-meta {
-    justify-content: center;
+    flex-direction: column;
   }
 
   .dashboard-hero-actions {
     flex-direction: row;
-    justify-content: center;
   }
 
-  .dashboard-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+  .dashboard-stats,
   .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Mobile (≤ 30em / 480px) */
-@media (max-width: 30em) {
+@media (max-width: 34em) {
+  .dashboard-hero {
+    padding: 1.25rem;
+  }
+
   .dashboard-hero-actions {
     flex-direction: column;
-    width: 100%;
   }
 
   .dashboard-hero-actions .btn-primary,
   .dashboard-hero-actions .btn-secondary {
-    width: 100%;
     justify-content: center;
+    width: 100%;
   }
 
-  .dashboard-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+  .dashboard-stats,
   .dashboard-grid {
     grid-template-columns: 1fr;
-  }
-
-  .dashboard-hero-greeting {
-    flex-direction: column;
-    gap: 0.25rem;
   }
 }

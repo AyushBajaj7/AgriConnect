@@ -37,6 +37,7 @@ import {
   fetchWeatherByCoords,
   fetchForecastByCoords,
   fetchAirQuality,
+  fetchRecentPrecipitation,
 } from "../../services/weatherService";
 import Loader from "../../components/Loader/Loader";
 import "./Weather.css";
@@ -142,7 +143,17 @@ function parseAQI(raw) {
 }
 
 // ── Last Rainfall ────────────────────────────────────────
-function getLastRainInfo(weather) {
+function getLastRainInfo(weather, recentRain) {
+  if (recentRain?.lastRain) {
+    return {
+      ago: recentRain.lastRain.ago,
+      window: recentRain.lastRain.window,
+      amount: recentRain.lastRain.amount.toFixed(2),
+      unit: "millimetres of rainfall",
+      status: recentRain.lastRain.amount > 0 ? "recent" : "none",
+    };
+  }
+
   const rain1h = weather.rain?.["1h"] || 0;
   const rain3h = weather.rain?.["3h"] || 0;
   const desc = (weather.weather[0].description || "").toLowerCase();
@@ -150,22 +161,20 @@ function getLastRainInfo(weather) {
   // mm = millimetres of precipitation depth (standard meteorological unit)
   if (rain1h > 0) {
     // rain.1h means rain accumulated in the last 1 hour
-    const mins = Math.round(Math.random() * 30 + 5); // OpenWeather reports at observation time; approximate
     return {
-      ago: `${mins} minutes ago`,
+      ago: "Current observation",
       window: "Within last hour",
-      amount: `${rain1h.toFixed(2)} mm`,
+      amount: rain1h.toFixed(2),
       unit: "millimetres of rainfall",
       status: "now",
     };
   }
   if (rain3h > 0) {
     // rain.3h means rain in the last 3-hour window
-    const hrs = (Math.random() * 1.5 + 1).toFixed(1); // between 1–2.5 h ago (midpoint of window)
     return {
-      ago: `~${hrs} hours ago`,
+      ago: "Within last 3 hours",
       window: "1 – 3 hours ago",
-      amount: `${rain3h.toFixed(2)} mm`,
+      amount: rain3h.toFixed(2),
       unit: "millimetres of rainfall",
       status: "recent",
     };
@@ -174,7 +183,7 @@ function getLastRainInfo(weather) {
     return {
       ago: "Possibly very recent",
       window: "Current observation",
-      amount: "Trace (<0.1 mm)",
+      amount: "Trace",
       unit: "millimetres of rainfall",
       status: "trace",
     };
@@ -182,7 +191,7 @@ function getLastRainInfo(weather) {
   return {
     ago: null,
     window: "Not in current data",
-    amount: "0 mm",
+    amount: "0",
     unit: "No rainfall recorded in OpenWeather's current observation window",
     status: "none",
   };
@@ -196,6 +205,92 @@ function analyzeRain(list = []) {
   const rainIn48 = next48.reduce((s, e) => s + (e.rain?.["3h"] || 0), 0);
   const firstRain = next48.find((e) => (e.rain?.["3h"] || 0) > 0);
   return { rainIn24, rainIn48, firstRain };
+}
+
+function parseRecentRain(raw) {
+  const times = raw?.hourly?.time ?? [];
+  const precipitation = raw?.hourly?.precipitation ?? [];
+  const temperatures = raw?.hourly?.temperature_2m ?? [];
+
+  if (!times.length || !precipitation.length) {
+    return null;
+  }
+
+  const now = Date.now();
+  const entries = times
+    .map((time, index) => ({
+      time,
+      timestamp: new Date(time).getTime(),
+      amount: Number(precipitation[index]) || 0,
+      temperature: Number(temperatures[index]),
+    }))
+    .filter((entry) => Number.isFinite(entry.timestamp));
+
+  const past = entries.filter((entry) => entry.timestamp <= now);
+  const future = entries.filter((entry) => entry.timestamp > now);
+  const past24 = past.slice(-24);
+  const next24 = future.slice(0, 24);
+  const next48 = future.slice(0, 48);
+  const lastWet = [...past24].reverse().find((entry) => entry.amount > 0);
+  const currentHour = past[past.length - 1] ?? null;
+  const todayWindow = [...past24, ...next24].filter((entry) => {
+    return Math.abs(entry.timestamp - now) <= 12 * 60 * 60 * 1000;
+  });
+
+  const dayTemps = todayWindow
+    .map((entry) => entry.temperature)
+    .filter((value) => Number.isFinite(value));
+
+  const hoursAgo = lastWet
+    ? Math.max(0, Math.round((now - lastWet.timestamp) / (60 * 60 * 1000)))
+    : null;
+
+  return {
+    currentHourRain: currentHour?.amount ?? 0,
+    lastRain: lastWet
+      ? {
+          amount: lastWet.amount,
+          ago: hoursAgo < 1 ? "Within the last hour" : `${hoursAgo} hours ago`,
+          window: "Recent hourly history",
+        }
+      : null,
+    rainIn24: next24.reduce((sum, entry) => sum + entry.amount, 0),
+    rainIn48: next48.reduce((sum, entry) => sum + entry.amount, 0),
+    dayMin:
+      dayTemps.length > 0 ? Math.min(...dayTemps) : Number.NaN,
+    dayMax:
+      dayTemps.length > 0 ? Math.max(...dayTemps) : Number.NaN,
+  };
+}
+
+function getForecastTempRange(forecast, recentRain, weather) {
+  const next24Temps =
+    forecast?.list
+      ?.slice(0, 8)
+      .map((item) => item.main?.temp)
+      .filter((value) => Number.isFinite(value)) ?? [];
+
+  if (Number.isFinite(recentRain?.dayMin) && Number.isFinite(recentRain?.dayMax)) {
+    return {
+      min: recentRain.dayMin,
+      max: recentRain.dayMax,
+      label: "24-hour range",
+    };
+  }
+
+  if (next24Temps.length) {
+    return {
+      min: Math.min(...next24Temps),
+      max: Math.max(...next24Temps),
+      label: "Forecast range",
+    };
+  }
+
+  return {
+    min: weather.main.temp_min,
+    max: weather.main.temp_max,
+    label: "Current area range",
+  };
 }
 
 // ── Crop Health ───────────────────────────────────────────
@@ -501,6 +596,7 @@ export default function Weather() {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [aqiData, setAqiData] = useState(null);
+  const [recentRainData, setRecentRainData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -513,16 +609,19 @@ export default function Weather() {
       setWeather(null);
       setForecast(null);
       setAqiData(null);
+      setRecentRainData(null);
       setLoading(false);
       return;
     }
-    const [f, a] = await Promise.all([
+    const [f, a, r] = await Promise.all([
       fetchForecastByCoords(w.coord.lat, w.coord.lon),
       fetchAirQuality(w.coord.lat, w.coord.lon),
+      fetchRecentPrecipitation(w.coord.lat, w.coord.lon),
     ]);
     setWeather(w);
     setForecast(f.error ? null : f);
     setAqiData(a.error ? null : a);
+    setRecentRainData(r.error ? null : r);
     setCity(w.name);
     setLoading(false);
   };
@@ -550,16 +649,25 @@ export default function Weather() {
     );
   };
 
-  const rain1h = weather?.rain?.["1h"] || 0;
+  const recentRain = parseRecentRain(recentRainData);
+  const rain1h = recentRain?.currentHourRain ?? weather?.rain?.["1h"] ?? 0;
   const aqi = parseAQI(aqiData);
-  const lastRain = weather ? getLastRainInfo(weather) : null;
-  const rains = forecast
+  const lastRain = weather ? getLastRainInfo(weather, recentRain) : null;
+  const forecastRain = forecast
     ? analyzeRain(forecast.list)
     : { rainIn24: 0, rainIn48: 0, firstRain: null };
+  const rains = {
+    ...forecastRain,
+    rainIn24: recentRain?.rainIn24 ?? forecastRain.rainIn24,
+    rainIn48: recentRain?.rainIn48 ?? forecastRain.rainIn48,
+  };
   const health = weather ? cropHealthScore(weather, aqi) : null;
   const measures = weather ? getMeasures(weather, rains.rainIn24, aqi) : [];
   const analysis = weather ? makeAnalysis(weather, health, rains, aqi) : "";
   const bg = weather ? getBgGradient(weather.weather[0].main) : "";
+  const tempRange = weather
+    ? getForecastTempRange(forecast, recentRain, weather)
+    : null;
 
   return (
     <div className="page-container">
@@ -577,10 +685,10 @@ export default function Weather() {
           onChange={(e) => setCity(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <button className="btn-primary" onClick={handleSearch}>
+        <button type="button" className="btn-primary" onClick={handleSearch}>
           Search
         </button>
-        <button className="btn-secondary" onClick={handleLocation}>
+        <button type="button" className="btn-secondary" onClick={handleLocation}>
           📍 Locate
         </button>
       </div>
@@ -621,8 +729,8 @@ export default function Weather() {
                     Feels {Math.round(weather.main.feels_like)}°C
                   </span>
                   <span className="wx-range">
-                    ↓ {Math.round(weather.main.temp_min)}° · ↑{" "}
-                    {Math.round(weather.main.temp_max)}°
+                    {tempRange.label}: ↓ {Math.round(tempRange.min)}° · ↑{" "}
+                    {Math.round(tempRange.max)}°
                   </span>
                 </div>
               </div>

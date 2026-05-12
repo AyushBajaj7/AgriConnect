@@ -64,6 +64,13 @@
   min-width: 22px;
 }
 
+.scheme-review-status {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
 /* ── Search bar ───────────────────────────────────────────────────────── */
 .schemes-search-bar {
   margin-bottom: clamp(0.875rem, 2vw, 1.25rem);

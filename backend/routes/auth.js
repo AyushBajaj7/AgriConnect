@@ -9,8 +9,15 @@ const {
   verifyCredentials,
   registerUser,
 } = require("../services/authService");
+const { refreshPricesIfStale } = require("../services/priceService");
 
 const router = express.Router();
+
+function queuePriceRefresh() {
+  refreshPricesIfStale().catch((error) => {
+    console.warn("Price cache login refresh failed:", error.message);
+  });
+}
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -47,6 +54,7 @@ router.post("/login", loginLimiter, async (request, response) => {
   }
 
   setSessionCookie(response, result.user);
+  queuePriceRefresh();
   return response.status(200).json({
     user: result.user,
   });
@@ -69,11 +77,17 @@ router.post("/register", loginLimiter, async (request, response) => {
   const result = await registerUser(username.trim(), password);
 
   if (!result.ok) {
-    const statusCode = result.code === "USER_EXISTS" ? 409 : 503;
+    const statusCode =
+      result.code === "USER_EXISTS"
+        ? 409
+        : result.code === "AUTH_VALIDATION"
+          ? 400
+          : 503;
     return response.status(statusCode).json({ error: result.message });
   }
 
   setSessionCookie(response, result.user);
+  queuePriceRefresh();
   return response.status(201).json({
     user: result.user,
   });

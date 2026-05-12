@@ -1,41 +1,26 @@
-/**
- * File: SchemeDetails.js
- * Description: Displays the full detail view for a single government scheme.
- *              Reads the scheme ID from the URL parameter and looks up
- *              the corresponding scheme via schemeService.
- *              Renders a 404-style "not found" state if the ID is invalid.
- *
- * Props: none (receives `id` via React Router's useParams hook)
- * Used in: App.js (route /scheme/:id)
- */
-
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getSchemeById } from "../../services/schemeService";
 import "./SchemeDetails.css";
 
 const STATUS_LABELS = {
-  ongoing: "Ongoing",
-  upcoming: "Upcoming",
-  completed: "Completed",
+  ongoing: "Currently open",
+  upcoming: "Coming soon",
+  completed: "Closed or completed",
 };
 
 function SchemeDetails() {
   const { id } = useParams();
-
-  // Parse the string URL param to an integer for lookup
   const scheme = getSchemeById(parseInt(id, 10));
 
-  // Render a friendly not-found state for invalid / missing scheme IDs
   if (!scheme) {
     return (
       <div className="page-container">
         <div className="not-found">
-          <span>⚠️</span>
           <h2>Scheme Not Found</h2>
           <p>The scheme you are looking for does not exist.</p>
           <Link to="/schemes" className="btn-primary">
-            ← Back to Schemes
+            Back to Schemes
           </Link>
         </div>
       </div>
@@ -75,14 +60,22 @@ function SchemeDetails() {
             <span className="scheme-detail-label">Beneficiaries</span>
             <span>{scheme.beneficiaries ?? "Varies by scheme"}</span>
           </div>
+          <div className="scheme-detail-metric">
+            <span className="scheme-detail-label">Last reviewed</span>
+            <span>{scheme.lastReviewed ?? "Review pending"}</span>
+          </div>
+          <div className="scheme-detail-metric">
+            <span className="scheme-detail-label">Support type</span>
+            <span>{scheme.coverageType ?? "Agriculture support"}</span>
+          </div>
         </div>
 
         <div className="info-banner">
           <div className="info-banner-title">Verify before applying</div>
           <div className="info-banner-text">
-            This page is a structured reference summary. Always confirm the
-            latest rules, dates, and required documents on the official scheme
-            portal before making a decision.
+            This page is a reviewed reference summary. Always confirm the latest
+            rules, dates, and required documents on the official scheme portal
+            before applying.
           </div>
         </div>
 
@@ -93,18 +86,30 @@ function SchemeDetails() {
           <h3>Eligibility</h3>
           <p>
             Eligibility depends on the scheme, state, beneficiary category,
-            landholding type, and supporting documents. Use the official scheme
-            rules to confirm whether the program applies to your farm or
-            organization.
+            landholding type, and supporting documents. Use the official rules
+            to confirm whether the program applies to your farm or organization.
           </p>
 
-          <h3>How to Apply</h3>
+          <h3>How to apply</h3>
           <p>
             Follow the official application route published for this scheme.
             Depending on the program, that may mean an online central portal, a
-            state agriculture department site, a district office, or an
-            assisted application through a local service center.
+            state agriculture department site, a district office, or assisted
+            application through a local service center.
           </p>
+
+          <h3>Official source</h3>
+          <p>
+            Review status: {scheme.reviewStatus ?? "Review link before applying"}.
+          </p>
+          <a
+            className="btn-primary"
+            href={scheme.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open official source
+          </a>
         </div>
       </div>
     </div>

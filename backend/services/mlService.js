@@ -1,6 +1,40 @@
 const GEMINI_MODEL = "gemini-2.5-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const REQUEST_TIMEOUT_MS = 15000;
+const LOCAL_FALLBACK_ENABLED = process.env.AI_LOCAL_FALLBACK !== "false";
+
+const FALLBACK_ANSWERS = [
+  {
+    keywords: ["pm-kisan", "pm kisan", "kisan samman"],
+    answer:
+      "PM-KISAN gives eligible farmer families direct income support in installments. Check eligibility, Aadhaar, land record, and bank details on the official PM-KISAN portal or at a Common Service Centre before applying.",
+  },
+  {
+    keywords: ["insurance", "pmfby", "fasal bima"],
+    answer:
+      "For crop insurance, check Pradhan Mantri Fasal Bima Yojana details for your crop, season, state, and bank enrollment window. Keep land records, sowing details, Aadhaar, and bank account information ready.",
+  },
+  {
+    keywords: ["soil", "fertility", "fertilizer", "compost"],
+    answer:
+      "Start with a soil test. Use compost or well-decomposed farmyard manure, rotate crops, include legumes when suitable, and apply chemical fertilizer based on soil-health recommendations instead of guessing.",
+  },
+  {
+    keywords: ["irrigate", "irrigation", "water", "wheat"],
+    answer:
+      "Irrigation timing depends on crop stage, soil type, and weather. For wheat, critical stages include crown-root initiation, tillering, flowering, and grain filling. Avoid over-watering and check soil moisture before irrigating.",
+  },
+  {
+    keywords: ["mandi", "price", "market"],
+    answer:
+      "Use the Market Prices page for mandi rates. If the live source is unavailable, AgriConnect shows the last successful live update or clearly labeled reference prices instead of fake live values.",
+  },
+  {
+    keywords: ["weather", "rain", "temperature"],
+    answer:
+      "Use the Weather page before spraying, irrigation, or harvesting. Avoid pesticide spray before rain or during strong wind, and plan irrigation around rainfall and soil moisture.",
+  },
+];
 
 function getModelStatus() {
   const configured = Boolean(process.env.GEMINI_API_KEY);
@@ -8,12 +42,16 @@ function getModelStatus() {
     ? {
         state: "ready",
         provider: GEMINI_MODEL,
+        fallback: LOCAL_FALLBACK_ENABLED ? "enabled" : "disabled",
         message: "Gemini API is configured.",
       }
     : {
-        state: "error",
-        provider: GEMINI_MODEL,
-        message: "GEMINI_API_KEY is missing from the backend environment.",
+        state: LOCAL_FALLBACK_ENABLED ? "degraded" : "error",
+        provider: LOCAL_FALLBACK_ENABLED ? "local-fallback" : GEMINI_MODEL,
+        fallback: LOCAL_FALLBACK_ENABLED ? "enabled" : "disabled",
+        message: LOCAL_FALLBACK_ENABLED
+          ? "Gemini is not configured. Local fallback answers are enabled."
+          : "GEMINI_API_KEY is missing from the backend environment.",
       };
 }
 
@@ -36,9 +74,7 @@ async function getResponse(query) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    const error = new Error("Gemini API key is missing.");
-    error.code = "MODEL_ERROR";
-    throw error;
+    return getLocalFallbackResponse(query);
   }
 
   const controller = new AbortController();
@@ -95,10 +131,27 @@ async function getResponse(query) {
     if (error.name === "AbortError") {
       error.code = "MODEL_TIMEOUT";
     }
+    if (LOCAL_FALLBACK_ENABLED) {
+      console.warn("Gemini unavailable. Using local fallback.", error.message);
+      return getLocalFallbackResponse(query);
+    }
     throw error;
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+function getLocalFallbackResponse(query) {
+  const normalized = String(query ?? "").toLowerCase();
+  const match = FALLBACK_ANSWERS.find((entry) =>
+    entry.keywords.some((keyword) => normalized.includes(keyword)),
+  );
+
+  if (match) {
+    return `${match.answer}\n\nThis is a local fallback answer because the main AI service is unavailable. Please verify important scheme or price details on official sources.`;
+  }
+
+  return "The main AI service is unavailable, so I can only give basic guidance right now. Please ask about crop planning, soil health, irrigation, crop insurance, government schemes, mandi prices, or weather planning.";
 }
 
 module.exports = { initML, getModelStatus, getResponse };

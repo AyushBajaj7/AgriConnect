@@ -84,10 +84,10 @@ export async function sendChatMessage(userMessage) {
 
 /** Suggested quick-start questions shown on chatbot open. */
 export const SUGGESTED_QUESTIONS = [
-  "What is PM-KISAN and how to apply?",
-  "Best crops to grow in summer?",
-  "How to improve soil fertility naturally?",
-  "When should I irrigate wheat?",
-  "How to get crop insurance under PMFBY?",
-  "Tractor rent vs buy - which is better?",
+  "How do I check PM-KISAN eligibility?",
+  "Which crops are suitable for hot weather?",
+  "How can I improve soil fertility?",
+  "When should I water wheat?",
+  "How do I apply for crop insurance?",
+  "Should I rent or buy a tractor?",
 ];

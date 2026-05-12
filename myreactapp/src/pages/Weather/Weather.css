@@ -138,7 +138,7 @@
   font-weight: 800;
   color: var(--primary-light);
   line-height: 0.9;
-  letter-spacing: -0.05em; /* relative — scales correctly at all zoom levels */
+  letter-spacing: 0;
   white-space: nowrap;
   text-shadow: 0 0 40px rgba(45, 160, 95, 0.4);
   word-break: break-all; /* fallback for very narrow */

@@ -2,6 +2,7 @@
 node_modules/
 npm-debug.log
 yarn-error.log
+*.log
 
 # Environment variables
 .env
@@ -21,6 +22,19 @@ output/
 .idea/
 .DS_Store
 *.pem
+.vercel/
+.codex-*/
+.codex/
+.graphifyignore
 
 # Backend temp files
 .embedding_cache.json
+backend/users.json
+backend/data/users/
+backend/data/prices/latest-live.json
+backend/data/prices/reference-prices.json
+backend/data/system/
+backend/data/schemes/review-log.json
+
+# Local analysis output
+graphify-out/
