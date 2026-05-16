@@ -1,7 +1,13 @@
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
+// Vercel Functions can only write reliably inside the temporary directory.
+const DATA_DIR =
+  process.env.DATA_DIR ||
+  (process.env.VERCEL
+    ? path.join(os.tmpdir(), "agriconnect-data")
+    : path.join(__dirname, "..", "data"));
 
 function ensureDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });

@@ -1,11 +1,16 @@
 {
   "version": 2,
-  "installCommand": "npm run install:frontend",
+  "installCommand": "npm --prefix backend install && npm run install:frontend",
   "buildCommand": "npm run build",
   "outputDirectory": "myreactapp/build",
+  "functions": {
+    "api/[...path].js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
-      "source": "/((?!static/|favicon.ico|manifest.json|logo192.png|logo512.png|robots.txt).*)",
+      "source": "/((?!api/|static/|favicon.ico|manifest.json|logo192.png|logo512.png|robots.txt).*)",
       "destination": "/index.html"
     }
   ]

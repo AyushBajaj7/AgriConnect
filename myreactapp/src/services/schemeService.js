@@ -6,19 +6,14 @@
  * Used in: pages/GovernmentSchemes/GovernmentSchemes.js
  *          pages/SchemeDetails/SchemeDetails.js
  */
+import { getBackendOrigin } from "./backendOrigin";
 
 /**
  * Status ordering for scheme sorting: ongoing → upcoming → completed.
  * @type {Record<string, number>}
  */
 const STATUS_ORDER = { ongoing: 0, upcoming: 1, completed: 2 };
-const DEFAULT_BACKEND_ORIGIN =
-  typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:5000`
-    : "http://localhost:5000";
-const API_BASE_URL = (
-  process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN
-).replace(/\/+$/, "");
+const API_BASE_URL = getBackendOrigin();
 
 const SCHEMES_RAW = [
   // ── ONGOING ──────────────────────────────────────────────────────────────────

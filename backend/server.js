@@ -15,6 +15,7 @@ const { getPriceStatus } = require("./services/priceService");
 
 const app = express();
 const PORT = process.env.PORT ?? 5000;
+let backendInitialized = false;
 const configuredOrigins = (process.env.FRONTEND_ORIGIN ?? "")
   .split(",")
   .map((origin) => origin.trim())
@@ -76,7 +77,7 @@ app.use("/api", chatRoutes);
 app.use("/api", priceRoutes);
 app.use("/api", schemeRoutes);
 
-app.get("/health", (_request, response) => {
+function sendHealthStatus(_request, response) {
   const ai = getModelStatus();
   const status = ai.state === "ready" ? "ok" : "degraded";
 
@@ -87,11 +88,23 @@ app.get("/health", (_request, response) => {
     ai,
     prices: getPriceStatus(),
   });
-});
+}
+
+app.get("/health", sendHealthStatus);
+app.get("/api/health", sendHealthStatus);
+
+function initializeBackend() {
+  if (backendInitialized) {
+    return;
+  }
+
+  initML();
+  backendInitialized = true;
+}
 
 function startServer() {
   try {
-    initML();
+    initializeBackend();
 
     const server = app.listen(PORT, () => {
       console.log(`AgriConnect backend running on http://localhost:${PORT}`);
@@ -122,4 +135,6 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = { app, startServer };
+initializeBackend();
+
+module.exports = { app, initializeBackend, startServer };

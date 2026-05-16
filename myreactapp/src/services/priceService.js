@@ -5,14 +5,9 @@
  * Used in: pages/CropPrices/CropPrices.js
  */
 
-const DEFAULT_BACKEND_ORIGIN =
-  typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:5000`
-    : "http://localhost:5000";
+import { getBackendOrigin } from "./backendOrigin";
 
-const API_BASE_URL = (
-  process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN
-).replace(/\/+$/, "");
+const API_BASE_URL = getBackendOrigin();
 const REFERENCE_CACHE_KEY = "agriconnect.referencePrices.v1";
 const PRICE_REQUEST_TIMEOUT_MS = 35000;
 

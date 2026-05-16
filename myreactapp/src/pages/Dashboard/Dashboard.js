@@ -2,17 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../components/Card/Card";
 import { useAuth } from "../../context/AuthContext";
+import { getBackendOrigin } from "../../services/backendOrigin";
 import { fetchMandiPrices } from "../../services/priceService";
 import "./Dashboard.css";
 
-const DEFAULT_BACKEND_ORIGIN =
-  typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:5000`
-    : "http://localhost:5000";
-
-const API_BASE_URL = (
-  process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN
-).replace(/\/+$/, "");
+const API_BASE_URL = getBackendOrigin();
 
 const FEATURE_CARDS = [
   {

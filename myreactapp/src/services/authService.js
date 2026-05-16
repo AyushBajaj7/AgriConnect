@@ -1,9 +1,6 @@
-const DEFAULT_BACKEND_ORIGIN =
-  typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:5000`
-    : "http://localhost:5000";
+import { getBackendOrigin } from "./backendOrigin";
 
-const AUTH_BASE_URL = `${(process.env.REACT_APP_BACKEND_URL ?? DEFAULT_BACKEND_ORIGIN).replace(/\/+$/, "")}/api/auth`;
+const AUTH_BASE_URL = `${getBackendOrigin()}/api/auth`;
 
 async function parseJson(response) {
   return response.json().catch(() => ({}));
