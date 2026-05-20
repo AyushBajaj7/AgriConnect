@@ -1,9 +1,12 @@
 const crypto = require("crypto");
 
 const SESSION_COOKIE = "agriconnect_session";
+const USER_RECOVERY_COOKIE = "agriconnect_user_recovery";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const USER_RECOVERY_TTL_MS = 30 * 24 * 60 * 60;
 const users = new Map();
 let priceCache = null;
+const runtimeSessionSecret = crypto.randomBytes(32).toString("hex");
 
 const CATEGORY_KEYWORDS = {
   vegetables: [
@@ -119,7 +122,7 @@ function readBody(request) {
 }
 
 function getSecret() {
-  return process.env.SESSION_SECRET || "agriconnect-vercel-fallback-secret";
+  return process.env.SESSION_SECRET || runtimeSessionSecret;
 }
 
 function base64Url(value) {
@@ -128,6 +131,18 @@ function base64Url(value) {
 
 function sign(value) {
   return crypto.createHmac("sha256", getSecret()).update(value).digest("base64url");
+}
+
+function appendCookie(response, value) {
+  const existing = response.getHeader("Set-Cookie");
+  if (!existing) {
+    response.setHeader("Set-Cookie", value);
+    return;
+  }
+  response.setHeader(
+    "Set-Cookie",
+    Array.isArray(existing) ? [...existing, value] : [existing, value],
+  );
 }
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
@@ -153,13 +168,67 @@ function createToken(user) {
   return `${payload}.${sign(payload)}`;
 }
 
-function readSession(request) {
-  const cookie = request.headers.cookie || "";
-  const token = cookie
+function getEncryptionKey() {
+  return crypto.createHash("sha256").update(getSecret()).digest();
+}
+
+function encryptRecoveryUser(user) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
+  const encrypted = Buffer.concat([
+    cipher.update(Buffer.from(JSON.stringify(user))),
+    cipher.final(),
+  ]);
+  return Buffer.from(
+    JSON.stringify({
+      v: 1,
+      iv: iv.toString("base64url"),
+      tag: cipher.getAuthTag().toString("base64url"),
+      data: encrypted.toString("base64url"),
+    }),
+  ).toString("base64url");
+}
+
+function decryptRecoveryUser(value) {
+  if (!value) return null;
+  try {
+    const envelope = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+    if (envelope.v !== 1) return null;
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      getEncryptionKey(),
+      Buffer.from(envelope.iv, "base64url"),
+    );
+    decipher.setAuthTag(Buffer.from(envelope.tag, "base64url"));
+    return JSON.parse(
+      Buffer.concat([
+        decipher.update(Buffer.from(envelope.data, "base64url")),
+        decipher.final(),
+      ]).toString("utf8"),
+    );
+  } catch {
+    return null;
+  }
+}
+
+function getCookie(request, name) {
+  return (request.headers.cookie || "")
     .split(";")
     .map((part) => part.trim())
-    .find((part) => part.startsWith(`${SESSION_COOKIE}=`))
+    .find((part) => part.startsWith(`${name}=`))
     ?.split("=")[1];
+}
+
+function readRecoveryUser(request, username) {
+  const user = decryptRecoveryUser(getCookie(request, USER_RECOVERY_COOKIE));
+  if (!user || user.username !== username || !user.passwordHash) {
+    return null;
+  }
+  return user;
+}
+
+function readSession(request) {
+  const token = getCookie(request, SESSION_COOKIE);
 
   if (!token) return null;
   const [payload, signature] = token.split(".");
@@ -176,11 +245,21 @@ function readSession(request) {
 
 function setSession(response, user) {
   const secure = process.env.NODE_ENV === "production";
-  response.setHeader(
-    "Set-Cookie",
+  appendCookie(
+    response,
     `${SESSION_COOKIE}=${createToken(user)}; HttpOnly; Path=/; Max-Age=${Math.floor(
       SESSION_TTL_MS / 1000,
     )}; SameSite=${secure ? "None" : "Lax"}${secure ? "; Secure" : ""}`,
+  );
+}
+
+function setRecoveryUser(response, user) {
+  const secure = process.env.NODE_ENV === "production";
+  appendCookie(
+    response,
+    `${USER_RECOVERY_COOKIE}=${encryptRecoveryUser(user)}; HttpOnly; Path=/; Max-Age=${USER_RECOVERY_TTL_MS}; SameSite=${
+      secure ? "None" : "Lax"
+    }${secure ? "; Secure" : ""}`,
   );
 }
 
@@ -305,6 +384,95 @@ async function getPrices() {
   };
 }
 
+function getWeatherApiKey() {
+  return (process.env.OPENWEATHER_API_KEY || "").trim();
+}
+
+async function fetchWeatherJson(endpoint, params) {
+  const apiKey = getWeatherApiKey();
+  if (!apiKey) {
+    return { error: "Weather service is not configured." };
+  }
+
+  const search = new URLSearchParams({ ...params, appid: apiKey });
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/${endpoint}?${search}`,
+      { signal: AbortSignal.timeout(15000) },
+    );
+    if (!response.ok) {
+      const message =
+        response.status === 401
+          ? "Weather service credentials are invalid."
+          : response.status === 404
+            ? "City not found. Please check the spelling."
+            : `Weather service error ${response.status}. Please try again.`;
+      return { error: message };
+    }
+    return await response.json();
+  } catch {
+    return { error: "Weather service is unavailable right now." };
+  }
+}
+
+async function fetchPrecipitationJson(params) {
+  const search = new URLSearchParams({
+    latitude: String(params.lat),
+    longitude: String(params.lon),
+    hourly: "precipitation,temperature_2m",
+    past_hours: "24",
+    forecast_hours: "48",
+    timezone: "auto",
+    precipitation_unit: "mm",
+  });
+
+  try {
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${search}`, {
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) {
+      return { error: `Rainfall history API error ${response.status}.` };
+    }
+    return await response.json();
+  } catch {
+    return { error: "Rainfall history is unavailable." };
+  }
+}
+
+async function handleWeather(request, response, route, searchParams) {
+  const city = searchParams.get("city");
+  const lat = searchParams.get("lat");
+  const lon = searchParams.get("lon");
+
+  if (route === "current") {
+    if (city) {
+      return sendJson(response, 200, await fetchWeatherJson("weather", { q: city, units: "metric" }));
+    }
+    if (lat && lon) {
+      return sendJson(response, 200, await fetchWeatherJson("weather", { lat, lon, units: "metric" }));
+    }
+  }
+
+  if (route === "forecast") {
+    if (city) {
+      return sendJson(response, 200, await fetchWeatherJson("forecast", { q: city, units: "metric" }));
+    }
+    if (lat && lon) {
+      return sendJson(response, 200, await fetchWeatherJson("forecast", { lat, lon, units: "metric" }));
+    }
+  }
+
+  if (route === "air-quality" && lat && lon) {
+    return sendJson(response, 200, await fetchWeatherJson("air_pollution", { lat, lon }));
+  }
+
+  if (route === "precipitation" && lat && lon) {
+    return sendJson(response, 200, await fetchPrecipitationJson({ lat, lon }));
+  }
+
+  return sendJson(response, 400, { error: "Required weather parameters are missing." });
+}
+
 async function handleAuth(request, response, route) {
   ensureAdminUser();
   if (route === "status") {
@@ -335,14 +503,16 @@ async function handleAuth(request, response, route) {
     const user = { username: validation.username, role: "user", passwordHash: hashPassword(body.password) };
     users.set(validation.username, user);
     setSession(response, user);
+    setRecoveryUser(response, user);
     return sendJson(response, 201, { user: { username: user.username, role: user.role } });
   }
 
-  const user = users.get(validation.username);
+  const user = users.get(validation.username) || readRecoveryUser(request, validation.username);
   if (!user || !verifyPassword(body.password, user.passwordHash)) {
     return sendJson(response, 401, { error: "Invalid username or password." });
   }
   setSession(response, user);
+  setRecoveryUser(response, user);
   return sendJson(response, 200, { user: { username: user.username, role: user.role } });
 }
 
@@ -368,6 +538,7 @@ module.exports = async function handler(request, response) {
   }
   if (parts[0] === "auth") return handleAuth(request, response, parts[1]);
   if (parts[0] === "prices") return sendJson(response, 200, await getPrices());
+  if (parts[0] === "weather") return handleWeather(request, response, parts[1], url.searchParams);
   if (parts[0] === "chat" && request.method === "POST") return handleChat(request, response);
   return sendJson(response, 404, { error: "API route not found." });
 };

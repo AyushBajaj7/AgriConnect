@@ -133,7 +133,7 @@ function GovernmentSchemes() {
               style={{ animationDelay: `${index * 0.03}s` }}
             >
               <div className="scheme-left">
-                <div className="scheme-number">Scheme {scheme.id}</div>
+                <div className="scheme-number">Scheme {index + 1}</div>
                 <span className={`scheme-status-badge badge-${scheme.status}`}>
                   {STATUS_LABELS[scheme.status]}
                 </span>

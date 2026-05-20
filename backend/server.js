@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth");
 const chatRoutes = require("./routes/chat");
 const priceRoutes = require("./routes/prices");
 const schemeRoutes = require("./routes/schemes");
+const weatherRoutes = require("./routes/weather");
 const { getAuthStatus } = require("./services/authService");
 const { initML, getModelStatus } = require("./services/mlService");
 const { getPriceStatus } = require("./services/priceService");
@@ -98,6 +99,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", chatRoutes);
 app.use("/api", priceRoutes);
 app.use("/api", schemeRoutes);
+app.use("/api", weatherRoutes);
 
 function sendHealthStatus(_request, response) {
   const ai = getModelStatus();

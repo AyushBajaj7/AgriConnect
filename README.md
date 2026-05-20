@@ -40,13 +40,13 @@ The frontend runs on `http://localhost:3000`.
 
 ```bash
 REACT_APP_BACKEND_URL=https://your-backend-domain.example
-REACT_APP_OPENWEATHER_API_KEY=your_openweather_api_key
 ```
 
 If this variable is not set, the frontend defaults to `http://localhost:5000`.
 
-The weather page expects an OpenWeather API key. Crop prices will fall back to
-curated reference data when the Agmarknet API is unavailable.
+The weather page calls the backend weather proxy. Keep OpenWeather credentials
+in the backend environment only. Crop prices will fall back to curated reference
+data when the Agmarknet API is unavailable.
 
 ### Backend: `backend/.env`
 
@@ -54,6 +54,8 @@ curated reference data when the Agmarknet API is unavailable.
 PORT=5000
 FRONTEND_ORIGIN=https://your-frontend-domain.example
 GEMINI_API_KEY=your_gemini_api_key
+OPENWEATHER_API_KEY=your_openweather_api_key
+AGMARKNET_API_KEY=your_data_gov_api_key
 ADMIN_USERNAME=your_admin_username
 ADMIN_PASSWORD_HASH=your_bcrypt_hash
 SESSION_SECRET=long_random_secret
@@ -86,6 +88,6 @@ The backend should run on a long-lived Node host because it manages session cook
 
 1. Deploy the frontend from `NewAgri/` on Vercel
 2. Deploy the backend on a long-running Node host
-3. Set `REACT_APP_BACKEND_URL` and `REACT_APP_OPENWEATHER_API_KEY` in the frontend deployment
-4. Set `FRONTEND_ORIGIN`, `GEMINI_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `SESSION_SECRET` in the backend deployment
+3. Set `REACT_APP_BACKEND_URL` in the frontend deployment only when the backend is hosted on a different domain
+4. Set `FRONTEND_ORIGIN`, `GEMINI_API_KEY`, `OPENWEATHER_API_KEY`, `AGMARKNET_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `SESSION_SECRET` in the backend deployment
 5. Verify `/dashboard`, `/weather`, `/crop-prices`, and chatbot connectivity after deploy

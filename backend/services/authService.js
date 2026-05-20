@@ -6,7 +6,9 @@ const path = require("path");
 const { dataPath, readJson, writeJson } = require("./localStore");
 
 const SESSION_COOKIE_NAME = "agriconnect_session";
+const USER_RECOVERY_COOKIE_NAME = "agriconnect_user_recovery";
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000;
+const USER_RECOVERY_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 const USERS_FILE = dataPath("users", "users.json");
 const LEGACY_USERS_FILE = path.join(__dirname, "..", "users.json");
 const LOCAL_SECRET_FILE = dataPath("system", "session-secret.json");
@@ -195,6 +197,82 @@ function timingSafeEqual(a, b) {
   return crypto.timingSafeEqual(left, right);
 }
 
+function getEncryptionKey() {
+  return crypto.createHash("sha256").update(getAuthConfig().sessionSecret).digest();
+}
+
+function encryptUserRecoveryRecord(user) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
+  const payload = Buffer.from(
+    JSON.stringify({
+      username: user.username,
+      passwordHash: user.passwordHash,
+      role: user.role ?? "user",
+      active: user.active !== false,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }),
+  );
+  const encrypted = Buffer.concat([cipher.update(payload), cipher.final()]);
+  const tag = cipher.getAuthTag();
+
+  return Buffer.from(
+    JSON.stringify({
+      v: 1,
+      iv: iv.toString("base64url"),
+      tag: tag.toString("base64url"),
+      data: encrypted.toString("base64url"),
+    }),
+  ).toString("base64url");
+}
+
+function decryptUserRecoveryRecord(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const envelope = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+    if (envelope.v !== 1) {
+      return null;
+    }
+
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      getEncryptionKey(),
+      Buffer.from(envelope.iv, "base64url"),
+    );
+    decipher.setAuthTag(Buffer.from(envelope.tag, "base64url"));
+    const decrypted = Buffer.concat([
+      decipher.update(Buffer.from(envelope.data, "base64url")),
+      decipher.final(),
+    ]);
+    const user = JSON.parse(decrypted.toString("utf8"));
+    if (!user?.username || !user?.passwordHash) {
+      return null;
+    }
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+function readUserRecovery(request, username) {
+  const user = decryptUserRecoveryRecord(
+    request?.cookies?.[USER_RECOVERY_COOKIE_NAME],
+  );
+  if (!user || normalizeUsername(user.username) !== normalizeUsername(username)) {
+    return null;
+  }
+  return {
+    ...user,
+    username: normalizeUsername(user.username),
+    role: user.role ?? "user",
+    active: user.active !== false,
+  };
+}
+
 async function verifyPassword(password, storedHash) {
   if (!storedHash) {
     return false;
@@ -207,7 +285,7 @@ async function verifyPassword(password, storedHash) {
   return timingSafeEqual(password, storedHash);
 }
 
-async function verifyCredentials(username, password) {
+async function verifyCredentials(username, password, request = null) {
   if (!isAuthConfigured()) {
     return {
       ok: false,
@@ -218,7 +296,7 @@ async function verifyCredentials(username, password) {
 
   const normalized = normalizeUsername(username);
   const users = loadUsers();
-  const user = users[normalized];
+  const user = users[normalized] ?? readUserRecovery(request, normalized);
 
   if (!user || user.active === false) {
     return {
@@ -240,6 +318,7 @@ async function verifyCredentials(username, password) {
   return {
     ok: true,
     user: { username: user.username, role: user.role ?? "user" },
+    userRecord: user,
   };
 }
 
@@ -279,6 +358,7 @@ async function registerUser(username, password) {
   return {
     ok: true,
     user: { username: normalized, role: "user" },
+    userRecord: users[normalized],
   };
 }
 
@@ -311,6 +391,17 @@ function setSessionCookie(response, user) {
   );
 }
 
+function setUserRecoveryCookie(response, user) {
+  response.cookie(
+    USER_RECOVERY_COOKIE_NAME,
+    encryptUserRecoveryRecord(user),
+    {
+      ...getCookieOptions(),
+      maxAge: USER_RECOVERY_DURATION_MS,
+    },
+  );
+}
+
 function clearSessionCookie(response) {
   response.clearCookie(SESSION_COOKIE_NAME, {
     ...getCookieOptions(),
@@ -328,14 +419,14 @@ function readSession(request) {
     const payload = jwt.verify(token, getAuthConfig().sessionSecret);
     const users = loadUsers();
     const user = users[normalizeUsername(payload.sub)];
-    if (!user || user.active === false) {
+    if (user?.active === false) {
       return null;
     }
 
     return {
       user: {
-        username: user.username,
-        role: user.role ?? payload.role ?? "user",
+        username: user?.username ?? normalizeUsername(payload.sub),
+        role: user?.role ?? payload.role ?? "user",
       },
     };
   } catch {
@@ -350,6 +441,7 @@ module.exports = {
   readSession,
   registerUser,
   setSessionCookie,
+  setUserRecoveryCookie,
   validatePassword,
   validateUsername,
   verifyCredentials,

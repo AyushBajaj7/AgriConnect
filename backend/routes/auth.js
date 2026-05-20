@@ -6,6 +6,7 @@ const {
   isAuthConfigured,
   readSession,
   setSessionCookie,
+  setUserRecoveryCookie,
   verifyCredentials,
   registerUser,
 } = require("../services/authService");
@@ -46,7 +47,7 @@ router.post("/login", loginLimiter, async (request, response) => {
     });
   }
 
-  const result = await verifyCredentials(username, password);
+  const result = await verifyCredentials(username, password, request);
 
   if (!result.ok) {
     const statusCode = result.code === "AUTH_NOT_CONFIGURED" ? 503 : 401;
@@ -54,6 +55,9 @@ router.post("/login", loginLimiter, async (request, response) => {
   }
 
   setSessionCookie(response, result.user);
+  if (result.userRecord) {
+    setUserRecoveryCookie(response, result.userRecord);
+  }
   queuePriceRefresh();
   return response.status(200).json({
     user: result.user,
@@ -87,6 +91,7 @@ router.post("/register", loginLimiter, async (request, response) => {
   }
 
   setSessionCookie(response, result.user);
+  setUserRecoveryCookie(response, result.userRecord);
   queuePriceRefresh();
   return response.status(201).json({
     user: result.user,

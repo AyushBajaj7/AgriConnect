@@ -10,12 +10,9 @@
  * API Reference: https://openweathermap.org/api
  */
 
-const API_KEY =
-  process.env.REACT_APP_OPENWEATHER_API_KEY ??
-  "6a173adde35f78487a42908af69bdf1d";
+import { getBackendOrigin } from "./backendOrigin";
 
-const WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
-const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+const API_BASE_URL = `${getBackendOrigin()}/api/weather`;
 
 /**
  * Shared fetch wrapper. Returns parsed JSON or a normalised error object.
@@ -25,10 +22,6 @@ const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
  * @returns {Promise<object>}
  */
 async function apiFetch(url) {
-  if (!API_KEY) {
-    return { error: "Weather service is not configured." };
-  }
-
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
 
@@ -56,7 +49,7 @@ async function apiFetch(url) {
  * @returns {Promise<object>} OpenWeatherMap current weather object, or `{ error }`.
  */
 export function fetchWeatherByCity(city) {
-  const url = `${WEATHER_BASE_URL}/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+  const url = `${API_BASE_URL}/current?city=${encodeURIComponent(city)}`;
   return apiFetch(url);
 }
 
@@ -68,7 +61,7 @@ export function fetchWeatherByCity(city) {
  * @returns {Promise<object>} OpenWeatherMap current weather object, or `{ error }`.
  */
 export function fetchWeatherByCoords(lat, lon) {
-  const url = `${WEATHER_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+  const url = `${API_BASE_URL}/current?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
   return apiFetch(url);
 }
 
@@ -79,7 +72,7 @@ export function fetchWeatherByCoords(lat, lon) {
  * @returns {Promise<object>} Forecast list object, or `{ error }`.
  */
 export function fetchForecastByCity(city) {
-  const url = `${WEATHER_BASE_URL}/forecast?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+  const url = `${API_BASE_URL}/forecast?city=${encodeURIComponent(city)}`;
   return apiFetch(url);
 }
 
@@ -93,7 +86,7 @@ export function fetchForecastByCity(city) {
  * @returns {Promise<object>} Forecast list object, or `{ error }`.
  */
 export function fetchForecastByCoords(lat, lon) {
-  const url = `${WEATHER_BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+  const url = `${API_BASE_URL}/forecast?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
   return apiFetch(url);
 }
 
@@ -108,7 +101,7 @@ export function fetchForecastByCoords(lat, lon) {
  * @returns {Promise<object>} Air Pollution API response, or `{ error }`.
  */
 export function fetchAirQuality(lat, lon) {
-  const url = `${WEATHER_BASE_URL}/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+  const url = `${API_BASE_URL}/air-quality?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
   return apiFetch(url);
 }
 
@@ -122,25 +115,6 @@ export function fetchAirQuality(lat, lon) {
  * @returns {Promise<object>}
  */
 export async function fetchRecentPrecipitation(lat, lon) {
-  const params = new URLSearchParams({
-    latitude: String(lat),
-    longitude: String(lon),
-    hourly: "precipitation,temperature_2m",
-    past_hours: "24",
-    forecast_hours: "48",
-    timezone: "auto",
-    precipitation_unit: "mm",
-  });
-
-  try {
-    const response = await fetch(`${OPEN_METEO_FORECAST_URL}?${params}`, {
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!response.ok) {
-      return { error: `Rainfall history API error ${response.status}.` };
-    }
-    return await response.json();
-  } catch {
-    return { error: "Rainfall history is unavailable." };
-  }
+  const url = `${API_BASE_URL}/precipitation?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+  return apiFetch(url);
 }
