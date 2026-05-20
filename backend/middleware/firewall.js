@@ -1,7 +1,7 @@
 const rateLimit = require("express-rate-limit");
 
 const DEFAULT_BLOCKED_PATTERNS = [
-  /\.\./,
+  /(?:^|\/)(?:\.\.|%2e%2e)(?:\/|$)/i,
   /<script/i,
   /\bunion\b.+\bselect\b/i,
   /\bselect\b.+\bfrom\b/i,
