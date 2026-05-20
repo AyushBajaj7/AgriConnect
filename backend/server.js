@@ -48,6 +48,21 @@ function isLocalDevelopmentOrigin(origin) {
   }
 }
 
+function isSameHostOrigin(origin, request) {
+  if (!origin) {
+    return true;
+  }
+
+  try {
+    const originUrl = new URL(origin);
+    const forwardedHost = request.headers["x-forwarded-host"];
+    const host = forwardedHost || request.headers.host;
+    return Boolean(host) && originUrl.host === host;
+  } catch {
+    return false;
+  }
+}
+
 app.disable("x-powered-by");
 app.use(
   helmet({
@@ -55,17 +70,24 @@ app.use(
   }),
 );
 app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin) || isLocalDevelopmentOrigin(origin)) {
-        callback(null, true);
-        return;
-      }
+  cors((request, callback) => {
+    callback(null, {
+      origin(origin, originCallback) {
+        if (
+          !origin ||
+          allowedOrigins.has(origin) ||
+          isLocalDevelopmentOrigin(origin) ||
+          isSameHostOrigin(origin, request)
+        ) {
+          originCallback(null, true);
+          return;
+        }
 
-      callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    credentials: true,
-    methods: ["GET", "POST"],
+        originCallback(new Error(`CORS blocked for origin: ${origin}`));
+      },
+      credentials: true,
+      methods: ["GET", "POST"],
+    });
   }),
 );
 app.use(cookieParser());

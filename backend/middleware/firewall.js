@@ -30,6 +30,7 @@ function getClientIp(request) {
 function createFirewall() {
   const deniedIps = new Set(parseCsv(process.env.FIREWALL_DENY_IPS));
   const allowedIps = new Set(parseCsv(process.env.FIREWALL_ALLOW_IPS));
+  const enforceAllowList = process.env.FIREWALL_ENFORCE_ALLOWLIST === "true";
   const maxUrlLength = Number.parseInt(
     process.env.FIREWALL_MAX_URL_LENGTH ?? "2048",
     10,
@@ -49,7 +50,7 @@ function createFirewall() {
     response.setHeader("X-AgriConnect-Firewall", "active");
 
     const ip = getClientIp(request);
-    if (allowedIps.size && !allowedIps.has(ip)) {
+    if (enforceAllowList && allowedIps.size && !allowedIps.has(ip)) {
       return response.status(403).json({ error: "Request blocked by firewall." });
     }
 
