@@ -1,3 +1,7 @@
+/**
+ * Lightweight request firewall for backend API routes.
+ * Applies basic URL screening plus a global request-rate cap.
+ */
 const rateLimit = require("express-rate-limit");
 
 const DEFAULT_BLOCKED_PATTERNS = [

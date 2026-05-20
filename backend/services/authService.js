@@ -1,3 +1,8 @@
+/**
+ * Backend authentication service.
+ * Owns local user persistence, password verification, session cookies,
+ * and the recovery-cookie fallback used by serverless deployments.
+ */
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const fs = require("fs");
@@ -296,6 +301,8 @@ async function verifyCredentials(username, password, request = null) {
 
   const normalized = normalizeUsername(username);
   const users = loadUsers();
+  // On Vercel, file-backed users may not persist across invocations. The
+  // recovery cookie keeps the same browser able to sign back in safely.
   const user = users[normalized] ?? readUserRecovery(request, normalized);
 
   if (!user || user.active === false) {

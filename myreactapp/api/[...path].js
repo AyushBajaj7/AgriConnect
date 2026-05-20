@@ -1,3 +1,8 @@
+/**
+ * Frontend-root Vercel API fallback.
+ * This file intentionally duplicates a small subset of backend behavior so
+ * deployments that use `myreactapp` as the project root still have working `/api/*` routes.
+ */
 const crypto = require("crypto");
 
 const SESSION_COOKIE = "agriconnect_session";
@@ -21,6 +26,25 @@ const CATEGORY_KEYWORDS = {
     "chilli",
   ],
   fruits: ["mango", "banana", "apple", "orange", "grape", "papaya", "guava"],
+  livestock: [
+    "fish",
+    "poultry",
+    "egg",
+    "cock",
+    "chicken",
+    "hen",
+    "duck",
+    "goat",
+    "mutton",
+    "beef",
+    "broiler",
+    "shrimp",
+    "prawn",
+    "katla",
+    "rohu",
+    "singhra",
+    "malli",
+  ],
   seeds: ["seed", "groundnut", "sunflower", "sesame", "castor"],
 };
 

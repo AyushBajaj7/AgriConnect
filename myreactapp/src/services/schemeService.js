@@ -436,20 +436,6 @@ export function getSchemeById(id) {
   return SCHEMES.find((s) => s.id === id) ?? null;
 }
 
-export function searchSchemes(query) {
-  const q = query.toLowerCase();
-  return SCHEMES.filter(
-    (s) =>
-      s.title.toLowerCase().includes(q) ||
-      s.ministry?.toLowerCase().includes(q),
-  );
-}
-
-export function getSchemesByStatus(status) {
-  if (status === "all") return SCHEMES;
-  return SCHEMES.filter((s) => s.status === status);
-}
-
 export async function fetchSchemeReviewLog() {
   try {
     const response = await fetch(`${API_BASE_URL}/api/schemes/review-log`, {

@@ -10,6 +10,7 @@ const CATEGORY_LABELS = {
   crops: "Crops",
   vegetables: "Vegetables",
   fruits: "Fruits",
+  livestock: "Livestock",
   seeds: "Seeds",
   fertilizers: "Fertilizers",
 };

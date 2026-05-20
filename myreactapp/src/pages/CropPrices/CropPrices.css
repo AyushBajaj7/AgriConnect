@@ -303,6 +303,10 @@
   background: rgba(99, 102, 241, 0.15);
   color: #818cf8;
 }
+.prices-cat-livestock {
+  background: rgba(244, 114, 182, 0.15);
+  color: #f472b6;
+}
 .prices-cat-seeds {
   background: rgba(236, 72, 153, 0.15);
   color: #f472b6;

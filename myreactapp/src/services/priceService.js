@@ -87,6 +87,25 @@ const CATEGORY_KEYWORDS = {
     "lime",
     "jackfruit",
   ],
+  livestock: [
+    "fish",
+    "poultry",
+    "egg",
+    "cock",
+    "chicken",
+    "hen",
+    "duck",
+    "goat",
+    "mutton",
+    "beef",
+    "broiler",
+    "shrimp",
+    "prawn",
+    "katla",
+    "rohu",
+    "singhra",
+    "malli",
+  ],
   seeds: [
     "groundnut",
     "sunflower",
@@ -1009,6 +1028,8 @@ export async function fetchMandiPrices() {
       stale: false,
     };
     writeReferenceCache(records, meta);
+    // Keep the last reviewed reference payload in browser storage so the page
+    // can still render meaningful data when both live fetches and static fallback fail.
     const cachedReference = readReferenceCache();
 
     return {
@@ -1026,6 +1047,7 @@ export const PRICE_CATEGORIES = [
   "crops",
   "vegetables",
   "fruits",
+  "livestock",
   "seeds",
   "fertilizers",
 ];

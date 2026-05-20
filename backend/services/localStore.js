@@ -1,3 +1,7 @@
+/**
+ * Local JSON persistence helpers for backend caches and auth data.
+ * Vercel writes go to the temp directory; local development writes stay in backend/data.
+ */
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -39,15 +43,6 @@ function writeJson(filePath, value) {
   fs.renameSync(tempPath, filePath);
 }
 
-function ensureJson(filePath, fallback) {
-  if (!fs.existsSync(filePath)) {
-    writeJson(filePath, fallback);
-    return fallback;
-  }
-
-  return readJson(filePath, fallback);
-}
-
 function dataPath(...segments) {
   return path.join(DATA_DIR, ...segments);
 }
@@ -55,7 +50,6 @@ function dataPath(...segments) {
 module.exports = {
   DATA_DIR,
   dataPath,
-  ensureJson,
   readJson,
   writeJson,
 };

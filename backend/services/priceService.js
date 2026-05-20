@@ -1,3 +1,8 @@
+/**
+ * Backend mandi price service.
+ * It prefers fresh AGMARKNET data, falls back to saved live cache, and finally
+ * serves the reviewed reference cache when the live source is unavailable.
+ */
 const { dataPath, readJson, writeJson } = require("./localStore");
 
 const CACHE_FILE = dataPath("prices", "latest-live.json");
@@ -123,6 +128,29 @@ function categorize(commodity = "") {
     ])
   ) {
     return "fruits";
+  }
+  if (
+    hasCategoryKeyword(normalized, [
+      "fish",
+      "poultry",
+      "egg",
+      "cock",
+      "chicken",
+      "hen",
+      "duck",
+      "goat",
+      "mutton",
+      "beef",
+      "broiler",
+      "shrimp",
+      "prawn",
+      "katla",
+      "rohu",
+      "singhra",
+      "malli",
+    ])
+  ) {
+    return "livestock";
   }
   if (
     hasCategoryKeyword(normalized, [
@@ -425,6 +453,8 @@ async function getMandiPrices() {
   const attemptedAt = new Date().toISOString();
   const cache = readPriceCache();
 
+  // Serve saved live data until the refresh interval expires, then attempt a
+  // new upstream fetch. This avoids blocking every request on AGMARKNET.
   if (cache?.records?.length && getCacheAge(cache) < LIVE_REFRESH_INTERVAL_MS) {
     const cachedAt = cache.meta?.fetchedAt ?? null;
     const nextLiveCheckAt = addMilliseconds(cachedAt, LIVE_REFRESH_INTERVAL_MS);

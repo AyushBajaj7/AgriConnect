@@ -1,3 +1,7 @@
+/**
+ * Backend weather proxy helpers.
+ * Keeps the OpenWeather key on the server and normalizes upstream failures.
+ */
 const OPENWEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
 const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 const REQUEST_TIMEOUT_MS = 15000;
@@ -107,5 +111,4 @@ module.exports = {
   fetchForecastByCity,
   fetchForecastByCoords,
   fetchRecentPrecipitation,
-  getWeatherApiKey,
 };

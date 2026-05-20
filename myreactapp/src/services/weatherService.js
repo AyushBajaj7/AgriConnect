@@ -12,6 +12,9 @@
 
 import { getBackendOrigin } from "./backendOrigin";
 
+// The frontend never calls the weather providers directly. All requests go through
+// AgriConnect backend routes so provider credentials stay on the server.
+
 const API_BASE_URL = `${getBackendOrigin()}/api/weather`;
 
 /**
@@ -66,20 +69,9 @@ export function fetchWeatherByCoords(lat, lon) {
 }
 
 /**
- * Fetches a 5-day / 3-hour forecast for a city name.
- *
- * @param {string} city
- * @returns {Promise<object>} Forecast list object, or `{ error }`.
- */
-export function fetchForecastByCity(city) {
-  const url = `${API_BASE_URL}/forecast?city=${encodeURIComponent(city)}`;
-  return apiFetch(url);
-}
-
-/**
  * Fetches a 5-day / 3-hour forecast for a coordinate pair.
- * Preferred over fetchForecastByCity when coordinates are already known
- * (avoids a second geocoding lookup).
+ * Weather.js calls this after current weather resolves with coordinates.
+ * This keeps the follow-up request aligned with the current location lookup.
  *
  * @param {number} lat
  * @param {number} lon
