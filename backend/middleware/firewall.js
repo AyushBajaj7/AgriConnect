@@ -27,6 +27,13 @@ function getClientIp(request) {
   );
 }
 
+function getInspectableUrl(request) {
+  return String(request.originalUrl ?? request.url ?? "").replace(
+    /\[\.\.\.[^\]]+\]\.js/g,
+    "catchall-function",
+  );
+}
+
 function createFirewall() {
   const deniedIps = new Set(parseCsv(process.env.FIREWALL_DENY_IPS));
   const allowedIps = new Set(parseCsv(process.env.FIREWALL_ALLOW_IPS));
@@ -58,11 +65,13 @@ function createFirewall() {
       return response.status(403).json({ error: "Request blocked by firewall." });
     }
 
-    if (request.originalUrl.length > maxUrlLength) {
+    const inspectableUrl = getInspectableUrl(request);
+
+    if (inspectableUrl.length > maxUrlLength) {
       return response.status(414).json({ error: "Request URL is too long." });
     }
 
-    if (DEFAULT_BLOCKED_PATTERNS.some((pattern) => pattern.test(request.originalUrl))) {
+    if (DEFAULT_BLOCKED_PATTERNS.some((pattern) => pattern.test(inspectableUrl))) {
       return response.status(403).json({ error: "Request blocked by firewall." });
     }
 
