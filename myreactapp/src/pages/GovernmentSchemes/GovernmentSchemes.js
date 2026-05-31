@@ -63,7 +63,7 @@ function GovernmentSchemes() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Government Schemes</h1>
+      <h1 className="page-title">🏛️ Government Schemes</h1>
       <p className="page-subtitle">
         Search reviewed agriculture schemes, check the last review date, and
         open official government sources before applying.

@@ -671,7 +671,7 @@ export default function Weather() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Weather Report</h1>
+      <h1 className="page-title">⛅ Weather Report</h1>
       <p className="page-subtitle">
         Real-time weather, air quality & agricultural impact analysis.
       </p>
