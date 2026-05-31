@@ -150,17 +150,13 @@
     display: none; /* hide text to save space */
   }
 
-  .logout-text {
+  .logout-icon {
     display: none;
   }
 
-  .logout-icon {
-    display: inline-block;
-    font-size: 1rem;
-  }
-
   .btn-logout {
-    padding: 6px 8px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
   }
 
   .navbar-links {
@@ -170,8 +166,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 2px;
-    mask-image: linear-gradient(to right, black 90%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+    /* Removed mask-image to prevent hiding the Weather tab */
   }
 
   .navbar-links::-webkit-scrollbar {
