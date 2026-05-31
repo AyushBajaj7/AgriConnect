@@ -146,11 +146,17 @@
 
 @media (max-width: 34em) {
   .dashboard-hero {
-    padding: 1.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-hero .page-subtitle {
+    margin-bottom: 0.5rem;
   }
 
   .dashboard-hero-actions {
     flex-direction: column;
+    gap: 0.5rem;
   }
 
   .dashboard-hero-actions .btn-primary,
@@ -159,17 +165,31 @@
     width: 100%;
   }
 
-  .dashboard-stats,
+  /* Keep stats as 2×2 grid, not single column */
+  .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
 
   .stat-card {
     min-height: auto;
-    padding: 0.8rem;
+    padding: 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
   }
 
   .dashboard-grid .card-component {
     min-height: auto;
+  }
+
+  .section-heading {
+    margin-bottom: 0.5rem;
   }
 }
