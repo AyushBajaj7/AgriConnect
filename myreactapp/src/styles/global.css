@@ -420,23 +420,17 @@ input::placeholder {
   white-space: nowrap;
 }
 
-@media (max-width: 56em) {
-  .main-content {
-    padding-bottom: 68px; /* space for the bottom tab bar */
-  }
-}
-
 @media (max-width: 30em) {
   .page-container {
     padding: clamp(0.75rem, 2vw, 1.25rem) clamp(0.5rem, 1.5vw, 1rem);
   }
 
   .page-title {
-    font-size: clamp(1.3rem, 5vw, 1.8rem);
+    font-size: 1.5rem;
   }
 
   .page-subtitle {
-    font-size: clamp(0.82rem, 3vw, 0.95rem);
+    font-size: 0.9rem;
     margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
   }
 }

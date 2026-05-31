@@ -9,9 +9,9 @@
 /* ── Search ─────────────────────────────── */
 .wx-search {
   display: flex;
-  gap: clamp(0.5rem, 1.5vw, 0.75rem);
-  margin-bottom: clamp(1.25rem, 3vw, 2rem);
-  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: nowrap;
   min-width: 0;
 }
 .wx-search input {

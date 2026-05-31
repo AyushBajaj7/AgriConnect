@@ -25,8 +25,10 @@
 
 .tools-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .tools-tab {
@@ -209,7 +211,8 @@
   }
 
   .tools-tab {
-    width: 100%;
+    flex-shrink: 0;
+    width: auto;
   }
 
   .tool-pricing {
