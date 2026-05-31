@@ -154,14 +154,23 @@ function CropPrices() {
   return (
     <div className="page-container">
       <div className="prices-header">
-        <div>
+        <div style={{ flex: 1 }}>
           <h1 className="page-title">Market Prices</h1>
           <p className="page-subtitle">
             Compare crop prices by mandi, crop, and price range. The page only
             says live when the government source returns current records.
           </p>
         </div>
-        <div className="prices-refresh-info">
+        <button
+          type="button"
+          className="btn-secondary prices-refresh-btn"
+          onClick={loadPrices}
+          disabled={loading}
+          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+        >
+          {loading ? "Checking..." : "Refresh"}
+        </button>
+        <div className="prices-refresh-info" style={{ width: "100%" }}>
           <span className={`prices-live-badge prices-live-badge-${feedMeta.source}`}>
             {feedMeta.label}
           </span>
@@ -174,14 +183,6 @@ function CropPrices() {
           <span className="prices-countdown">
             Next live check in {countdown}s
           </span>
-          <button
-            type="button"
-            className="btn-secondary prices-refresh-btn"
-            onClick={loadPrices}
-            disabled={loading}
-          >
-            {loading ? "Checking..." : "Refresh"}
-          </button>
         </div>
       </div>
 

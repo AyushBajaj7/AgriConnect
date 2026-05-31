@@ -163,4 +163,13 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+
+  .stat-card {
+    min-height: auto;
+    padding: 0.8rem;
+  }
+
+  .dashboard-grid .card-component {
+    min-height: auto;
+  }
 }

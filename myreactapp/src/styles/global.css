@@ -100,6 +100,108 @@ svg {
 
 /* ── APP SHELL ── */
 .app-container {
+/**
+ * global.css
+ * Description: Design token definitions, CSS reset, shared utility classes,
+ *              fluid grid helpers, button variants, badge styles, and
+ *              global animations used across the entire AgriConnect app.
+ *              All page-specific styles live in their own component CSS file.
+ *
+ * Performance: Uses will-change and transform3d for GPU compositing.
+ *              Prefers reduced-motion is respected.
+ */
+
+/* ── RESET & BOX MODEL ── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── DESIGN TOKENS ── */
+:root {
+  --primary: #1a7a4a;
+  --primary-dark: #145e38;
+  --primary-light: #2da05f;
+  --accent: #f5a623;
+  --accent-dark: #d4891a;
+  --bg-dark: #0d1f15;
+  --bg-card: #132b1d;
+  --bg-card-hover: #1b3d28;
+  --text-primary: #f0f7f2;
+  --text-secondary: #9ab5a3;
+  --text-muted: #6b8a78;
+  --border: #1e3a28;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 8px 40px rgba(26, 122, 74, 0.3);
+  --radius: 12px;
+  --radius-lg: 20px;
+  /* Fluid spacing scale */
+  --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+  --space-sm: clamp(0.5rem, 1vw, 0.75rem);
+  --space-md: clamp(0.75rem, 1.5vw, 1rem);
+  --space-lg: clamp(1rem, 2vw, 1.5rem);
+  --space-xl: clamp(1.5rem, 3vw, 2.5rem);
+  --space-2xl: clamp(2rem, 4vw, 4rem);
+}
+
+/* ── BASE ── */
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%; /* prevent iOS font inflation */
+  scroll-behavior: smooth;
+  color-scheme: dark; /* Force native dropdowns/scrollbars to dark mode */
+}
+
+body {
+  min-height: 100%;
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── TYPOGRAPHY (fluid) ── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── APP SHELL ── */
+.app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -109,6 +211,7 @@ svg {
 .main-content {
   flex: 1;
   padding-top: 72px; /* equals navbar height */
+  padding-bottom: 72px; /* equals bottom navbar height on mobile */
   min-width: 0;
 }
 
@@ -422,6 +525,10 @@ input::placeholder {
 
 /* ── GLOBAL RESPONSIVE HELPERS ── */
 @media (max-width: 30em) {
+  .page-container {
+    padding: clamp(0.75rem, 2vw, 1.25rem) clamp(0.5rem, 1.5vw, 1rem);
+  }
+
   .page-title {
     font-size: clamp(1.3rem, 5vw, 1.8rem);
   }

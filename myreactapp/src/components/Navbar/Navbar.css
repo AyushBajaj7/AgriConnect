@@ -105,6 +105,51 @@
   width: 100%;
   border: none;
   background: none;
+  white-space: nowrap;
+}
+
+/* ── NAV LINKS (desktop) ── */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap; /* allow wrapping at high zoom instead of overflowing */
+  min-width: 0;
+  overflow: hidden; /* keep within navbar even if wrap can't save it */
+  max-height: 72px; /* clamp to navbar height on desktop */
+}
+
+.nav-link {
+  display: inline-block;
+  padding: clamp(0.35rem, 0.8vw, 0.5rem) clamp(0.6rem, 1.2vw, 1rem);
+  font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  transition:
+    color 0.2s,
+    background 0.2s;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link.active {
+  color: var(--primary-light);
+  background: rgba(26, 122, 74, 0.15);
+}
+
+.nav-link-button {
+  width: 100%;
+  border: none;
+  background: none;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
@@ -137,37 +182,40 @@
   transition: all 0.3s ease;
 }
 
-/* ── MOBILE MENU ── */
-/* Breakpoint raised to 56em (896px logical) so hamburger kicks in at 125% zoom on 768px screens */
+/* ── MOBILE MENU (Bottom Navbar) ── */
+/* Breakpoint raised to 56em (896px logical) so bottom nav kicks in at 125% zoom on 768px screens */
 @media (max-width: 56em) {
-  .hamburger {
-    display: flex;
-  }
-
   .navbar-links {
     position: fixed;
-    top: 72px;
+    bottom: 0;
+    top: auto;
     left: 0;
     right: 0;
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
     background: rgba(13, 31, 21, 0.98);
-    border-bottom: 1px solid var(--border);
-    padding: 16px clamp(1rem, 3vw, 1.5rem);
-    gap: 4px;
-    display: none;
-    max-height: calc(100vh - 72px);
-    overflow-y: auto;
-    max-height: unset; /* override desktop clamp */
-  }
-
-  .navbar-links.open {
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+    padding: 8px 4px;
+    gap: 0;
     display: flex;
+    height: 72px;
+    z-index: 1000;
   }
 
   .nav-link {
-    padding: clamp(0.65rem, 1.5vw, 0.875rem) clamp(0.75rem, 2vw, 1rem);
-    font-size: 0.95rem;
+    padding: clamp(0.35rem, 1vw, 0.5rem);
+    font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+    flex: 1;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .navbar-mobile-action {
+    display: none;
   }
 }
 
@@ -214,12 +262,10 @@
 }
 
 @media (max-width: 56em) {
-  .navbar-mobile-action {
-    display: block;
-  }
-
-  .navbar-username,
-  .btn-logout {
+  .navbar-username {
     display: none;
+  }
+  .btn-logout {
+    display: inline-block;
   }
 }

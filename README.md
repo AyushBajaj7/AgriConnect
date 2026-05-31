@@ -1,93 +1,105 @@
 # AgriConnect
 
-AgriConnect is a full-stack agriculture web app with a React frontend and a separate Node/Express backend. The frontend provides a dashboard, crop prices, weather analysis, scheme references, tools, and a floating chatbot UI. The backend handles secure session auth and Gemini-backed chat responses.
+AgriConnect is a full-stack agriculture web app for dashboard access, government scheme references, live mandi prices, weather analysis, farming tools, and an AI assistant.
 
-## Repo structure
+## Read First
+
+If the project feels too large, start here:
+
+1. [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) - plain-English overview of how the app works.
+2. [docs/FILE_MAP.md](docs/FILE_MAP.md) - what each folder and important file is for.
+3. [docs/API_AND_DATA_FLOW.md](docs/API_AND_DATA_FLOW.md) - how login, weather, crop prices, schemes, and chatbot requests move through the system.
+
+## Repo Structure
 
 ```text
 NewAgri/
-  backend/      Node + Express API for chat
+  api/          Vercel API entrypoints when deploying from the repo root
+  backend/      Express backend used locally and by Vercel API functions
+  docs/         Human-readable project documentation
   myreactapp/   Create React App frontend
-  package.json  Root helper scripts for deployment
-  vercel.json   Vercel frontend build configuration
+  package.json  Root helper scripts
+  vercel.json   Vercel build and routing config
 ```
 
-## Local development
+## Local Development
 
-### Backend
+Install backend and frontend dependencies once:
 
 ```bash
 cd backend
 npm install
+
+cd ../myreactapp
+npm install
+```
+
+Run the backend:
+
+```bash
+cd backend
 npm run dev
 ```
 
 The backend listens on `http://localhost:5000`.
 
-### Frontend
+Run the frontend in another terminal:
 
 ```bash
 cd myreactapp
-npm install
 npm start
 ```
 
 The frontend runs on `http://localhost:3000`.
 
-## Environment variables
+## Environment Variables
 
-### Frontend: `myreactapp/.env`
+Secrets belong in `backend/.env` locally and in Vercel Project Settings for production. Do not commit `.env`.
 
-```bash
-REACT_APP_BACKEND_URL=https://your-backend-domain.example
-```
-
-If this variable is not set, the frontend defaults to `http://localhost:5000`.
-
-The weather page calls the backend weather proxy. Keep OpenWeather credentials
-in the backend environment only. Crop prices will fall back to curated reference
-data when the Agmarknet API is unavailable.
-
-### Backend: `backend/.env`
+Required backend values:
 
 ```bash
 PORT=5000
-FRONTEND_ORIGIN=https://your-frontend-domain.example
 GEMINI_API_KEY=your_gemini_api_key
 OPENWEATHER_API_KEY=your_openweather_api_key
 AGMARKNET_API_KEY=your_data_gov_api_key
 ADMIN_USERNAME=your_admin_username
 ADMIN_PASSWORD_HASH=your_bcrypt_hash
 SESSION_SECRET=long_random_secret
+AI_LOCAL_FALLBACK=true
 ```
 
-`FRONTEND_ORIGIN` can be a comma-separated list of allowed frontend origins.
-For cross-site deployments, set secure cookie options if needed.
-
-## Vercel deployment
-
-The current Vercel setup in this repo is for the frontend only.
-
-- Import the repo root `NewAgri/` into Vercel
-- Vercel will use the root `vercel.json`
-- The build output is `myreactapp/build`
-- SPA routes are rewritten to `index.html`
-
-Root build commands:
+Optional frontend value:
 
 ```bash
-npm run install:frontend
-npm run build
+REACT_APP_BACKEND_URL=https://your-backend-domain.example
 ```
 
-## Backend hosting note
+Leave `REACT_APP_BACKEND_URL` empty for normal localhost work and same-domain Vercel hosting.
 
-The backend should run on a long-lived Node host because it manages session cookies and the chatbot provider integration. Point the frontend at it with `REACT_APP_BACKEND_URL`.
+## Common Commands
 
-## Production checklist
+From `NewAgri/`:
 
-1. Deploy the frontend from `NewAgri/` on Vercel
-2. Deploy the backend on a long-running Node host
-3. Set `REACT_APP_BACKEND_URL` in the frontend deployment only when the backend is hosted on a different domain
-4. Set `FRONTEND_ORIGIN`, `GEMINI_API_KEY`, `OPENWEATHER_API_KEY`, `AGMARKNET_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `SESSION_SECRET` in the backend deployment
-5. Verify `/dashboard`, `/weather`, `/crop-prices`, and chatbot connectivity after deploy
+```bash
+npm.cmd run build
+npm.cmd run start:backend
+npm.cmd run start:frontend
+```
+
+On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
+
+## Deployment Notes
+
+- Vercel deploys the React frontend and `/api/*` serverless routes.
+- `api/` and `myreactapp/api/` both exist because Vercel may be configured to deploy from either the repo root or the frontend folder.
+- `backend/.env`, generated build files, logs, local users, and graphify output are ignored by Git.
+- Vercel serverless file storage is temporary. Local JSON users and cache are useful for development, but they are not a permanent production database.
+
+## Quick Health Checks
+
+```bash
+curl https://agri-connect-gamma-one.vercel.app/api/health
+curl https://agri-connect-gamma-one.vercel.app/api/prices
+curl "https://agri-connect-gamma-one.vercel.app/api/weather/current?city=Delhi"
+```
