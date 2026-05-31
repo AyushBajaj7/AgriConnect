@@ -442,6 +442,13 @@ export async function fetchSchemeReviewLog() {
       credentials: "include",
       signal: AbortSignal.timeout(15000),
     });
+
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+      throw new Error("Portal returned a non-JSON response. Check back later.");
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -455,10 +462,13 @@ export async function fetchSchemeReviewLog() {
   } catch (error) {
     return {
       ok: false,
-      error: error.message,
+      error: error.name === "TimeoutError"
+        ? "Portal check timed out."
+        : error.message,
       log: null,
     };
   }
 }
+
 
 export const SCHEME_STATUSES = ["all", "ongoing", "upcoming", "completed"];

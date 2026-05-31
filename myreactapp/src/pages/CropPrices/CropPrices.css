@@ -8,20 +8,19 @@
 /* ── Page header ─────────────────────────────────────────────────────── */
 .prices-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: clamp(0.75rem, 2vw, 1.25rem);
-  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
 }
 
 .prices-refresh-info {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
   font-size: clamp(0.72rem, 1.1vw, 0.82rem);
   color: var(--text-muted);
+  margin-top: 0.25rem;
 }
 
 .prices-live-badge {
@@ -55,8 +54,9 @@
 }
 
 .prices-refresh-btn {
-  font-size: 0.8rem;
-  padding: 6px 14px;
+  padding: 4px 14px;
+  font-size: 0.78rem;
+  margin-left: auto;
 }
 
 /* ── Category tabs ───────────────────────────────────────────────────── */
@@ -411,15 +411,8 @@
 
 /* Tablet */
 @media (max-width: 56em) {
-  .prices-header {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
-
-  .prices-refresh-info {
-    justify-content: flex-start;
-    order: 3;
+  .prices-refresh-btn {
+    margin-left: 0;
   }
 }
 
