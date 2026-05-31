@@ -154,7 +154,7 @@ function CropPrices() {
   return (
     <div className="page-container">
       <div className="prices-header">
-        <h1 className="page-title">Market Prices</h1>
+        <h1 className="page-title">🌾 Market Prices</h1>
         <p className="page-subtitle">
           Compare crop prices by mandi, crop, and price range. The page only
           says live when the government source returns current records.
@@ -274,14 +274,27 @@ function CropPrices() {
                     {item.maxPrice.toLocaleString("en-IN")}
                   </td>
                   <td className="prices-modal" data-label="Main price">
-                    <span className={`prices-trend trend-${item.trend}`}>
-                      {TREND_LABELS[item.trend] ?? "Stable"}
-                    </span>
-                    <span className="prices-modal-value">
-                      Rs {item.modalPrice.toLocaleString("en-IN")}
-                    </span>
+                    <div className="prices-modal-content">
+                      <span className={`prices-trend trend-${item.trend} desktop-only`}>
+                        {TREND_LABELS[item.trend] ?? "Stable"}
+                      </span>
+                      <span className="prices-modal-value">
+                        Rs {item.modalPrice.toLocaleString("en-IN")}
+                      </span>
+                      <a
+                        className="btn-navigate mobile-only-btn"
+                        href={`https://www.google.com/maps/search/${encodeURIComponent(
+                          `${item.market} mandi ${item.state}`,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${item.market} mandi in Google Maps`}
+                      >
+                        Open map
+                      </a>
+                    </div>
                   </td>
-                  <td data-label="Map">
+                  <td className="prices-map-cell desktop-only" data-label="Map">
                     <a
                       className="btn-navigate"
                       href={`https://www.google.com/maps/search/${encodeURIComponent(

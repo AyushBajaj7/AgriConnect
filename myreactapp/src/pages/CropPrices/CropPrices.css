@@ -556,3 +556,30 @@
   }
 }
 
+/* Visibility rules */
+.mobile-only-btn {
+  display: none;
+}
+
+@media (max-width: 48em) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only-btn {
+    display: inline-flex;
+    margin-left: auto;
+    width: auto;
+    min-height: 32px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .prices-modal-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+  }
+}
+
