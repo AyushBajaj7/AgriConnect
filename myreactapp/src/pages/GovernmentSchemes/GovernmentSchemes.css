@@ -253,6 +253,11 @@
     padding: 1rem;
   }
 
+  .scheme-content {
+    flex: none;
+    width: 100%;
+  }
+
   .scheme-left {
     flex-direction: row;
     min-width: unset;
