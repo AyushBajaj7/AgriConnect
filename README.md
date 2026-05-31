@@ -95,6 +95,7 @@ On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 - `api/` and `myreactapp/api/` both exist because Vercel may be configured to deploy from either the repo root or the frontend folder.
 - `backend/.env`, generated build files, logs, local users, and graphify output are ignored by Git.
 - Vercel serverless file storage is temporary. Local JSON users and cache are useful for development, but they are not a permanent production database.
+- A static fallback `SESSION_SECRET` is used automatically in serverless deployments to ensure user login sessions and recovery cookies survive lambda restarts, even if `users.json` resets.
 
 ## Quick Health Checks
 

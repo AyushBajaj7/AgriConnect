@@ -33,13 +33,21 @@ function getSessionSecret() {
     return existing.secret;
   }
 
-  const secret = crypto.randomBytes(32).toString("hex");
-  writeJson(LOCAL_SECRET_FILE, {
-    secret,
-    createdAt: new Date().toISOString(),
-    note: "Local development secret. Set SESSION_SECRET in production.",
-  });
-  return secret;
+  // Use a static fallback secret for serverless environments where the file system is ephemeral.
+  // This ensures sessions and recovery cookies remain valid across lambda invocations.
+  const fallbackSecret = "agriconnect-fallback-secret-for-serverless-deployments-32bytes!";
+  
+  try {
+    writeJson(LOCAL_SECRET_FILE, {
+      secret: fallbackSecret,
+      createdAt: new Date().toISOString(),
+      note: "Fallback secret for serverless deployments. Set SESSION_SECRET in production.",
+    });
+  } catch (err) {
+    // Ignore write errors on read-only filesystems (like Vercel)
+  }
+  
+  return fallbackSecret;
 }
 
 function getAuthConfig() {
